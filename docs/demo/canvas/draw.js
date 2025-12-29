@@ -1,112 +1,103 @@
-// draw.js — Fixed waveform + time cursor
-// FINAL: Per-channel auto vertical scaling (true oscilloscope behavior)
+// draw.js
+// Oscilloscope-style stacked waveform renderer
+// Channels: V, I, X, P, Q  (single time axis)
 
-export function drawStack(ctx, stack, ui){
-  const { canvas } = ctx;
-  const W = canvas.width;
-  const H = canvas.height;
+export function drawStack(ctx, stack, opts = {}) {
+  const {
+    cursor_us = null,
+    grid = true
+  } = opts;
 
-  /* ===== layout ===== */
-  const padL = 70;
-  const padR = 20;
-  const padT = 10;
-  const padB = 10;
+  const W = ctx.canvas.width / (window.devicePixelRatio || 1);
+  const H = ctx.canvas.height / (window.devicePixelRatio || 1);
 
-  const plotW = W - padL - padR;
-  const plotH = H - padT - padB;
+  ctx.clearRect(0, 0, W, H);
 
-  /* ===== channels ===== */
-  const rows = [
-    { key:"V", label:"V(t)  [drive]",      color:"#00ff88", weight:1.0 },
-    { key:"I", label:"I(t)  [current]",    color:"#ffd400", weight:1.0 },
-    { key:"x", label:"Δx(t) [mechanical]", color:"#ff8800", weight:1.0 },
-    { key:"P", label:"P(t)  [pressure]",   color:"#ff4d4d", weight:1.4 },
-    { key:"Q", label:"Q(t)  [ink flow]",   color:"#4da6ff", weight:1.4 },
+  // ----- layout -----
+  const channels = [
+    { key: "V", label: "V(t) [drive]",       color: "#00ff9c" },
+    { key: "I", label: "I(t) [current]",     color: "#ffd400" },
+    { key: "X", label: "Δx(t) [mechanical]", color: "#ff9f0a" },
+    { key: "P", label: "P(t) [pressure]",    color: "#ff453a" },
+    { key: "Q", label: "Q(t) [flow]",        color: "#64d2ff" } // ★これが欠けていた
   ];
 
-  const sumW = rows.reduce((s,r)=>s+r.weight,0);
+  const PAD_L = 52;
+  const PAD_R = 10;
+  const PAD_T = 10;
+  const PAD_B = 10;
 
-  const t = stack.t;
-  const tEnd = t[t.length - 1];
+  const plotH = H - PAD_T - PAD_B;
+  const rowH  = plotH / channels.length;
 
-  /* ===== clear ===== */
-  ctx.fillStyle = "#000";
-  ctx.fillRect(0, 0, W, H);
+  const T = stack.t; // time array [µs]
 
-  /* ===== vertical grid ===== */
-  ctx.lineWidth = 1;
-  ctx.strokeStyle = "#111";
-  for(let i=0;i<=10;i++){
-    const x = padL + plotW * i / 10;
-    ctx.beginPath();
-    ctx.moveTo(x, padT);
-    ctx.lineTo(x, padT + plotH);
-    ctx.stroke();
+  // ----- helpers -----
+  function drawGrid(y0) {
+    ctx.strokeStyle = "#1f2329";
+    ctx.lineWidth = 1;
+    for (let i = 0; i <= 4; i++) {
+      const y = y0 + (i / 4) * rowH;
+      ctx.beginPath();
+      ctx.moveTo(PAD_L, y);
+      ctx.lineTo(W - PAD_R, y);
+      ctx.stroke();
+    }
   }
 
-  ctx.font = "12px ui-monospace";
-  let yCursor = padT;
+  function drawWave(y0, data, color) {
+    let max = 0;
+    for (let v of data) max = Math.max(max, Math.abs(v));
+    if (max === 0) max = 1;
 
-  /* ===== draw each channel ===== */
-  for(const row of rows){
-    const rowH = plotH * row.weight / sumW;
-    const yMid = yCursor + rowH / 2;
-
-    // separator
-    ctx.strokeStyle = "#111";
-    ctx.beginPath();
-    ctx.moveTo(padL, yCursor);
-    ctx.lineTo(padL + plotW, yCursor);
-    ctx.stroke();
-
-    // zero line
-    ctx.strokeStyle = "#222";
-    ctx.beginPath();
-    ctx.moveTo(padL, yMid);
-    ctx.lineTo(padL + plotW, yMid);
-    ctx.stroke();
-
-    // label
-    ctx.fillStyle = "#aaa";
-    ctx.fillText(row.label, 10, yCursor + 14);
-
-    // ---- AUTO SCALE (core fix) ----
-    let maxAbs = 1e-9;
-    const data = stack[row.key];
-    for(let i=0;i<data.length;i++){
-      const a = Math.abs(data[i]);
-      if(a > maxAbs) maxAbs = a;
-    }
-    const scale = (rowH * 0.45) / maxAbs; // always fit
-
-    // waveform
-    ctx.strokeStyle = row.color;
+    ctx.strokeStyle = color;
     ctx.lineWidth = 2;
     ctx.beginPath();
-    for(let i=0;i<t.length;i++){
-      const x = padL + plotW * (t[i] / tEnd);
-      const y = yMid - data[i] * scale;
-      if(i === 0) ctx.moveTo(x, y);
+
+    for (let i = 0; i < data.length; i++) {
+      const x =
+        PAD_L +
+        (i / (data.length - 1)) * (W - PAD_L - PAD_R);
+      const y =
+        y0 + rowH / 2 -
+        (data[i] / max) * (rowH * 0.35);
+
+      if (i === 0) ctx.moveTo(x, y);
       else ctx.lineTo(x, y);
     }
     ctx.stroke();
-
-    yCursor += rowH;
   }
 
-  // bottom border
-  ctx.strokeStyle = "#111";
-  ctx.beginPath();
-  ctx.moveTo(padL, padT + plotH);
-  ctx.lineTo(padL + plotW, padT + plotH);
-  ctx.stroke();
+  // ----- draw channels -----
+  ctx.font = "12px system-ui";
+  ctx.textBaseline = "middle";
 
-  /* ===== time cursor ===== */
-  const xc = padL + plotW * (ui.cursor_us / tEnd);
-  ctx.strokeStyle = "#00ffff";
-  ctx.lineWidth = 1.5;
-  ctx.beginPath();
-  ctx.moveTo(xc, padT);
-  ctx.lineTo(xc, padT + plotH);
-  ctx.stroke();
+  channels.forEach((ch, idx) => {
+    const y0 = PAD_T + idx * rowH;
+
+    if (grid) drawGrid(y0);
+
+    // label
+    ctx.fillStyle = "#9aa3ad";
+    ctx.fillText(ch.label, 6, y0 + rowH / 2);
+
+    // waveform
+    drawWave(y0, stack[ch.key], ch.color);
+  });
+
+  // ----- time cursor -----
+  if (cursor_us !== null) {
+    const i =
+      Math.floor((cursor_us / T[T.length - 1]) * (T.length - 1));
+    const x =
+      PAD_L +
+      (i / (T.length - 1)) * (W - PAD_L - PAD_R);
+
+    ctx.strokeStyle = "#00e5ff";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(x, PAD_T);
+    ctx.lineTo(x, H - PAD_B);
+    ctx.stroke();
+  }
 }
