@@ -28,23 +28,21 @@ window.addEventListener("DOMContentLoaded", () => {
   slider.min = 0;
   slider.max = data.t.length - 1;
   slider.step = 1;
-
-  // 初期位置：駆動パルス中
   slider.value = Math.floor(data.t.length * 0.35);
 
   /* =========================
-     RUN control
+     RUN control（安全対応）
      ========================= */
-  const runBtn = document.getElementById("run"); // ← ボタンID
+  const runBtn = document.getElementById("run"); // ← HTML側に追加
   let isRunning = false;
-
-  // 再生速度（index / frame）
   let playSpeed = 1;
 
-  runBtn.addEventListener("click", () => {
-    isRunning = !isRunning;
-    runBtn.textContent = isRunning ? "STOP" : "RUN";
-  });
+  if (runBtn) {
+    runBtn.addEventListener("click", () => {
+      isRunning = !isRunning;
+      runBtn.textContent = isRunning ? "STOP" : "RUN";
+    });
+  }
 
   /* =========================
      Update display
@@ -81,11 +79,7 @@ window.addEventListener("DOMContentLoaded", () => {
   function animate() {
     if (isRunning) {
       let idx = +slider.value + playSpeed;
-
-      if (idx >= data.t.length) {
-        idx = 0; // ループ再生
-      }
-
+      if (idx >= data.t.length) idx = 0;
       slider.value = idx;
       update();
     }
@@ -96,30 +90,16 @@ window.addEventListener("DOMContentLoaded", () => {
   /* =========================
      Gain sliders
      ========================= */
-
-  /*
-    data-gain 属性の意味づけ：
-    - V : Primary control (Drive voltage)
-    - x,P,Q : Advanced (Device parameters)
-    - I : Display only
-  */
-
   document.querySelectorAll("input[data-gain]").forEach(el => {
     el.addEventListener("input", e => {
       const key = e.target.dataset.gain;
       const value = +e.target.value;
 
-      // Gain更新
       setGain(key, value);
-
-      // 物理モデルは常に再計算
       data = simulate();
 
-      // スライダー範囲再同期（安全）
       slider.max = data.t.length - 1;
-
       update();
     });
   });
-
 });
