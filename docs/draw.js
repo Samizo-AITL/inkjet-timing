@@ -1,4 +1,8 @@
 export function drawStack(ctx, stack, gains, cursor) {
+
+  // ★★★ 強制リセット（最重要） ★★★
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+
   const W = ctx.canvas.width;
   const H = ctx.canvas.height;
 
@@ -42,7 +46,8 @@ export function drawStack(ctx, stack, gains, cursor) {
     for (let i = 0; i < d.length; i++) {
       const x = (i / (d.length - 1)) * W;
       const y = ch.y - d[i] * g;
-      i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+      if (i === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
     }
     ctx.stroke();
 
