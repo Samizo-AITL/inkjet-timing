@@ -1,172 +1,63 @@
-// docs/demo/canvas/draw.js
-// Draw stacked waveforms on a single time axis + causality cursor.
-
+// draw.js
 export function drawStack(ctx, stack, ui) {
   const { canvas } = ctx;
   const W = canvas.width;
   const H = canvas.height;
 
-  // layout
-  const padL = 80;
-  const padR = 22;
-  const padT = 18;
-  const padB = 18;
-
+  const padL = 70, padR = 20, padT = 20, padB = 20;
   const plotW = W - padL - padR;
   const plotH = H - padT - padB;
 
   const rows = [
-    { key: "V", label: "V(t)  [drive]" },
-    { key: "I", label: "I(t)  [response]" },
-    { key: "x", label: "Δx(t) [mech]" },
-    { key: "P", label: "P(t)  [pressure]" },
-    { key: "Q", label: "Q(t)  [+out / -in]" },
+    { key: "V", label: "V(t)  [drive]",      color: "#00ff88" },
+    { key: "I", label: "I(t)  [current]",    color: "#ffd400" },
+    { key: "x", label: "Δx(t) [mechanical]", color: "#ff8800" },
+    { key: "P", label: "P(t)  [pressure]",   color: "#ff4d4d" },
+    { key: "Q", label: "Q(t)  [ink flow]",   color: "#4da6ff" },
   ];
 
   const rowH = plotH / rows.length;
 
-  // clear
-  ctx.clearRect(0, 0, W, H);
-  ctx.fillStyle = "#fff";
+  // Background
+  ctx.fillStyle = "#000000";
   ctx.fillRect(0, 0, W, H);
 
-  // frame
-  ctx.strokeStyle = "#d0d7de";
-  ctx.lineWidth = 1;
-  roundRect(ctx, 6, 6, W - 12, H - 12, 10);
-  ctx.stroke();
-
-  // axis + plots
-  ctx.font = "12px system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial";
-  ctx.fillStyle = "#111";
-  ctx.strokeStyle = "#d0d7de";
+  ctx.font = "12px ui-monospace";
   ctx.lineWidth = 1;
 
-  // time labels
-  ctx.fillStyle = "#666";
-  ctx.fillText("time [µs]", padL + plotW / 2 - 22, H - 6);
-
-  // draw each row
   for (let r = 0; r < rows.length; r++) {
     const y0 = padT + r * rowH;
-    const yMid = y0 + rowH / 2;
+    const mid = y0 + rowH / 2;
 
-    // separator
-    if (r > 0) {
-      ctx.beginPath();
-      ctx.moveTo(padL, y0);
-      ctx.lineTo(padL + plotW, y0);
-      ctx.stroke();
-    }
-
-    // label
-    ctx.fillStyle = "#111";
-    ctx.fillText(rows[r].label, 14, y0 + 14);
-
-    // zero line
-    ctx.strokeStyle = "#e6ebf1";
+    // Zero line
+    ctx.strokeStyle = "#202020";
     ctx.beginPath();
-    ctx.moveTo(padL, yMid);
-    ctx.lineTo(padL + plotW, yMid);
+    ctx.moveTo(padL, mid);
+    ctx.lineTo(padL + plotW, mid);
     ctx.stroke();
 
-    // waveform
-    ctx.strokeStyle = "#111";
-    ctx.lineWidth = 1.2;
-    plotWave(ctx, stack.t, stack[rows[r].key], padL, y0 + 6, plotW, rowH - 12);
+    // Label
+    ctx.fillStyle = "#aaaaaa";
+    ctx.fillText(rows[r].label, 10, y0 + 14);
+
+    // Waveform
+    ctx.strokeStyle = rows[r].color;
+    ctx.beginPath();
+    for (let i = 0; i < stack.t.length; i++) {
+      const x = padL + plotW * i / (stack.t.length - 1);
+      const y = mid - stack[rows[r].key][i] * (rowH * 0.4);
+      if (i === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    }
+    ctx.stroke();
   }
 
-  // causality arrows at left (V→I→x→P→Q)
-  const xArrow = padL - 28;
-  ctx.strokeStyle = "#111";
-  ctx.fillStyle = "#111";
-  for (let r = 0; r < rows.length - 1; r++) {
-    const yA = padT + r * rowH + rowH / 2;
-    const yB = padT + (r + 1) * rowH + rowH / 2;
-    arrow(ctx, xArrow, yA, xArrow, yB);
-  }
-  ctx.fillStyle = "#666";
-  ctx.fillText("causal", xArrow - 14, padT + 10);
-
-  // cursor (shared time)
+  // Time cursor
   const t = stack.t;
-  const tMin = t[0];
-  const tMax = t[t.length - 1];
-  const tc = ui.cursor_us;
-
-  const xc = padL + (plotW * (tc - tMin)) / (tMax - tMin);
-  ctx.strokeStyle = "#0969da";
-  ctx.lineWidth = 1;
+  const xc = padL + plotW * ui.cursor_us / t[t.length - 1];
+  ctx.strokeStyle = "#00ffff";
   ctx.beginPath();
   ctx.moveTo(xc, padT);
   ctx.lineTo(xc, padT + plotH);
   ctx.stroke();
-
-  // show reflection delay marker if enabled
-  if (ui.showDelay) {
-    const xd = padL + (plotW * (tc - ui.refl_delay_us - tMin)) / (tMax - tMin);
-    ctx.strokeStyle = "#ff7b72";
-    ctx.setLineDash([4, 4]);
-    ctx.beginPath();
-    ctx.moveTo(xd, padT);
-    ctx.lineTo(xd, padT + plotH);
-    ctx.stroke();
-    ctx.setLineDash([]);
-
-    ctx.fillStyle = "#666";
-    ctx.fillText("delay", xd + 4, padT + 12);
-  }
-
-  // HUD
-  ctx.fillStyle = "#111";
-  ctx.font = "12px ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace";
-  ctx.fillText(`t = ${tc.toFixed(2)} µs`, padL + 6, padT + 14);
-}
-
-// ---- drawing helpers ----
-function plotWave(ctx, t, y, x, yTop, w, h) {
-  const n = t.length;
-  const yMid = yTop + h / 2;
-
-  // map y in [-1,1] -> pixels
-  const amp = (h / 2) * 0.90;
-
-  ctx.beginPath();
-  for (let i = 0; i < n; i++) {
-    const px = x + (w * i) / (n - 1);
-    const py = yMid - y[i] * amp;
-    if (i === 0) ctx.moveTo(px, py);
-    else ctx.lineTo(px, py);
-  }
-  ctx.stroke();
-}
-
-function arrow(ctx, x1, y1, x2, y2) {
-  const head = 6;
-  const dx = x2 - x1;
-  const dy = y2 - y1;
-  const ang = Math.atan2(dy, dx);
-
-  ctx.beginPath();
-  ctx.moveTo(x1, y1);
-  ctx.lineTo(x2, y2);
-  ctx.stroke();
-
-  ctx.beginPath();
-  ctx.moveTo(x2, y2);
-  ctx.lineTo(x2 - head * Math.cos(ang - Math.PI / 6), y2 - head * Math.sin(ang - Math.PI / 6));
-  ctx.lineTo(x2 - head * Math.cos(ang + Math.PI / 6), y2 - head * Math.sin(ang + Math.PI / 6));
-  ctx.closePath();
-  ctx.fill();
-}
-
-function roundRect(ctx, x, y, w, h, r) {
-  const rr = Math.min(r, w / 2, h / 2);
-  ctx.beginPath();
-  ctx.moveTo(x + rr, y);
-  ctx.arcTo(x + w, y, x + w, y + h, rr);
-  ctx.arcTo(x + w, y + h, x, y + h, rr);
-  ctx.arcTo(x, y + h, x, y, rr);
-  ctx.arcTo(x, y, x + w, y, rr);
-  ctx.closePath();
 }
