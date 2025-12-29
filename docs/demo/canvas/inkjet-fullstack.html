@@ -1,38 +1,12 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <title>Inkjet Timing</title>
-</head>
-<body>
-  <canvas id="c" width="800" height="400"></canvas>
+let t = 0;
 
-  <label>
-    Acoustic Damper
-    <input type="checkbox" id="damper" checked>
-  </label>
+function loop() {
+  const data = computeWaveforms(t);
+  draw(ctx, data);
 
-  <script type="module">
-    import { params } from "./params.js";
-    import { computeWaveforms } from "./model.js";
-    import { draw } from "./draw.js";
+  t += 0.2;
+  if (t > 20) t = 0;   // ★ 周期リセット
 
-    const canvas = document.getElementById("c");
-    const ctx = canvas.getContext("2d");
-
-    document.getElementById("damper").onchange = e => {
-      params.damper_enabled = e.target.checked;
-    };
-
-    let t = 0;
-    function loop() {
-      const data = computeWaveforms(t);
-      draw(ctx, data);
-      t += 0.1;
-      requestAnimationFrame(loop);
-    }
-    loop();
-  </script>
-</body>
-</html>
-
+  requestAnimationFrame(loop);
+}
+loop();
