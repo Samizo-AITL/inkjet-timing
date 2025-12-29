@@ -9,29 +9,26 @@ const stack = computeStack(params);
 
 const gains = {
   V: 1,
-  I: 1,
-  x: 1,
-  P: 1,
-  Q: 1,
+  I: 0.3,
+  x: 2,
+  P: 3,
+  Q: 0.5
 };
 
-function bind(id, key) {
-  const el = document.getElementById(id);
-  el.oninput = () => {
-    gains[key] = parseFloat(el.value);
+const cursor = document.getElementById("cursor");
+
+["V","I","x","P","Q"].forEach(k => {
+  document.getElementById("g"+k).oninput = e => {
+    gains[k] = +e.target.value;
     redraw();
   };
-}
+});
 
-bind("gain-v", "V");
-bind("gain-i", "I");
-bind("gain-x", "x");
-bind("gain-p", "P");
-bind("gain-q", "Q");
+cursor.oninput = redraw;
 
 function redraw() {
-  drawStack(ctx, stack, gains);
+  drawStack(ctx, stack, gains, +cursor.value);
 }
 
 redraw();
-console.log("FULL STACK BOOT OK");
+console.log("TIMING OBSERVER READY");
