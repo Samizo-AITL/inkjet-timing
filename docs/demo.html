@@ -6,7 +6,6 @@
 <title>Inkjet Timing Demo</title>
 
 <style>
-/* 画面全体を黒に固定 */
 html, body {
   margin: 0;
   height: 100%;
@@ -16,20 +15,20 @@ html, body {
   font-family: system-ui, sans-serif;
 }
 
-/* 左：波形 / 右：操作 */
 #wrap {
   display: flex;
   height: 100vh;
 }
 
-/* 波形（必ず表示される） */
+/* 左：オシロ波形 */
 canvas {
   flex: 1;
   display: block;
-  background: #000; /* ← オシロ黒 */
+  background: #000;
+  height: 100vh;              /* ★ これが無いと真っ黒事故 */
 }
 
-/* 右パネル（カーソルはここ） */
+/* 右：操作（カーソルはここ） */
 #panel {
   width: 260px;
   padding: 10px;
@@ -40,7 +39,7 @@ canvas {
 label {
   display: block;
   font-size: 12px;
-  margin-bottom: 10px;
+  margin-bottom: 12px;
 }
 
 input[type="range"] {
@@ -50,22 +49,22 @@ input[type="range"] {
 </head>
 
 <body>
-  <div id="wrap">
-    <canvas id="canvas"></canvas>
+<div id="wrap">
+  <canvas id="canvas"></canvas>
 
-    <aside id="panel">
-      <label>Time cursor
-        <input id="time" type="range">
-      </label>
+  <aside id="panel">
+    <label>Time cursor
+      <input id="time" type="range">
+    </label>
 
-      <label>V <input type="range" data-gain="V" min="0" max="2" step="0.1" value="1"></label>
-      <label>I <input type="range" data-gain="I" min="0" max="2" step="0.1" value="1"></label>
-      <label>x <input type="range" data-gain="x" min="0" max="2" step="0.1" value="1"></label>
-      <label>P <input type="range" data-gain="P" min="0" max="2" step="0.1" value="1"></label>
-      <label>Q <input type="range" data-gain="Q" min="0" max="2" step="0.1" value="1"></label>
-    </aside>
-  </div>
+    <label>V <input type="range" data-gain="V" min="0" max="2" step="0.1" value="1"></label>
+    <label>I <input type="range" data-gain="I" min="0" max="2" step="0.1" value="1"></label>
+    <label>x <input type="range" data-gain="x" min="0" max="2" step="0.1" value="1"></label>
+    <label>P <input type="range" data-gain="P" min="0" max="2" step="0.1" value="1"></label>
+    <label>Q <input type="range" data-gain="Q" min="0" max="2" step="0.1" value="1"></label>
+  </aside>
+</div>
 
-  <script type="module" src="main.js"></script>
+<script type="module" src="main.js"></script>
 </body>
 </html>
