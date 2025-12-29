@@ -1,82 +1,88 @@
-import { DT, N, gains } from "./params.js";
+import { gains } from "./params.js";
+
+/*
+  Simple causal inkjet model:
+    V(t) -> Δx(t) -> P(t) -> Q(t)
+*/
 
 export function simulate() {
-  const t = [], V = [], I = [], x = [], P = [], Q = [];
+  const N = 600;
+  const tEnd = 30e-6; // 30 µs
+  const dt = tEnd / (N - 1);
+
+  const t = new Array(N);
+  const V = new Array(N);
+  const I = new Array(N);
+  const x = new Array(N);
+  const P = new Array(N);
+  const Q = new Array(N);
 
   /* =========================
-     State variables
+     Time axis
      ========================= */
-  let x_prev = 0;
-  let p_prev = 0;
-  let v_prev = 0;
+  for (let i = 0; i < N; i++) {
+    t[i] = i * dt;
+  }
 
   /* =========================
-     Electrical parameters
+     Drive voltage waveform
      ========================= */
-  const Cpiezo = 2e-9;   // [F] piezo capacitance
-  const Rloss  = 5e5;    // [Ohm] dielectric loss
-  const tr     = 0.5e-6; // [s] rise / fall time
+  const Vamp = gains.V; // ← Voltage Amplitude [V]
 
   for (let i = 0; i < N; i++) {
-    const ti = i * DT;
-    t.push(ti);
+    const ti = t[i] * 1e6; // µs
 
-    /* =========================
-       1. Drive Voltage (Primary)
-       ========================= */
-    let v_drive = 0;
-
-    if (ti > 5e-6 && ti < 15e-6) {
-      if (ti < 5e-6 + tr) {
-        v_drive = (ti - 5e-6) / tr;          // rise
-      } else if (ti > 15e-6 - tr) {
-        v_drive = (15e-6 - ti) / tr;         // fall
-      } else {
-        v_drive = 1;                         // hold
-      }
+    if (ti < 5) {
+      V[i] = 0;
+    } else if (ti < 10) {
+      V[i] = Vamp;
+    } else if (ti < 12) {
+      V[i] = -0.4 * Vamp;
+    } else {
+      V[i] = 0;
     }
+  }
 
-    const v = v_drive * gains.V;
-    V.push(v);
+  /* =========================
+     Current (display only)
+     ========================= */
+  for (let i = 1; i < N; i++) {
+    I[i] = gains.I * (V[i] - V[i - 1]) / dt * 1e-6;
+  }
+  I[0] = 0;
 
-    /* =========================
-       2. Current (Result) [mA]
-       ========================= */
-    const dv = (v - v_prev) / DT;
+  /* =========================
+     Piezo displacement Δx(t)
+     ========================= */
+  const kx = gains.x; // [nm/V]
+  let xState = 0;
 
-    // A → mA conversion (IMPORTANT)
-    const ii_mA =
-      gains.I * 1e3 * (Cpiezo * dv + v / Rloss);
+  for (let i = 0; i < N; i++) {
+    // simple first-order response
+    xState += (kx * V[i] - xState) * 0.05;
+    x[i] = xState;
+  }
 
-    I.push(ii_mA);
-    v_prev = v;
+  /* =========================
+     Cavity pressure P(t)
+     ========================= */
+  const kp = gains.P; // [kPa/nm]
+  let pState = 0;
 
-    /* =========================
-       3. Piezo Displacement
-          Δx ← V
-       ========================= */
-    const tau_x = 5e-6;
-    const x_target = gains.x * v;
-    const xx = x_prev + (DT / tau_x) * (x_target - x_prev);
-    x.push(xx);
-    x_prev = xx;
+  for (let i = 0; i < N; i++) {
+    pState += (kp * x[i] - pState) * 0.05;
+    P[i] = pState;
+  }
 
-    /* =========================
-       4. Cavity Pressure
-          P ← Δx
-       ========================= */
-    const tau_p = 8e-6;
-    const p_target = gains.P * xx;
-    const pp = p_prev + (DT / tau_p) * (p_target - p_prev);
-    P.push(pp);
-    p_prev = pp;
+  /* =========================
+     Flow rate Q(t)
+     ========================= */
+  const kq = gains.Q; // [nL/µs/kPa]
+  let qState = 0;
 
-    /* =========================
-       5. Flow Rate
-          Q ← P
-       ========================= */
-    const qq = Math.max(0, gains.Q * pp);
-    Q.push(qq);
+  for (let i = 0; i < N; i++) {
+    qState += (kq * P[i] - qState) * 0.05;
+    Q[i] = qState;
   }
 
   return { t, V, I, x, P, Q };
