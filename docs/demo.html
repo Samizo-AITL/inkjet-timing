@@ -29,12 +29,36 @@ canvas {
   border-left: 1px solid #222;
   box-sizing: border-box;
 }
+
+/* ===== Typography ===== */
 h1 { font-size: 16px; margin: 0 0 6px; }
+h2 { font-size: 13px; margin: 12px 0 6px; color: #9cf; }
+h3 { font-size: 12px; margin: 10px 0 4px; color: #888; }
 a { color: #9cf; font-size: 12px; text-decoration: none; }
-label { display: block; font-size: 12px; margin-top: 10px; }
+label { display: block; font-size: 12px; margin-top: 8px; }
 input[type="range"] { width: 100%; }
 #values { font-size: 12px; line-height: 1.5; margin-top: 6px; }
-hr { border: none; border-top: 1px solid #222; margin: 10px 0; }
+hr { border: none; border-top: 1px solid #222; margin: 12px 0; }
+
+/* ===== Section styling ===== */
+.section-primary {
+  padding: 10px;
+  border-left: 4px solid #2aa8ff;
+  background: rgba(42,168,255,0.06);
+}
+
+.section-advanced {
+  margin-top: 14px;
+  padding-top: 10px;
+  border-top: 1px dashed #333;
+  opacity: 0.7;
+}
+
+.note {
+  font-size: 11px;
+  color: #777;
+  margin-top: 4px;
+}
 </style>
 </head>
 
@@ -54,20 +78,59 @@ hr { border: none; border-top: 1px solid #222; margin: 10px 0; }
 
     <div id="values">
       <div>t = <span id="tv">0.0</span> µs</div>
-      <div>V(t) = <span id="vV">0.00</span></div>
-      <div>I(t) = <span id="vI">0.00</span></div>
-      <div>Δx(t) = <span id="vx">0.00</span></div>
-      <div>P(t) = <span id="vP">0.00</span></div>
-      <div>Q(t) = <span id="vQ">0.00</span></div>
+      <div>V(t) = <span id="vV">0.00</span> V</div>
+      <div>I(t) = <span id="vI">0.00</span> mA</div>
+      <div>Δx(t) = <span id="vx">0.00</span> nm</div>
+      <div>P(t) = <span id="vP">0.00</span> kPa</div>
+      <div>Q(t) = <span id="vQ">0.00</span> nL/µs</div>
     </div>
 
     <hr>
 
-    <label>Voltage Gain <input type="range" data-gain="V" min="0" max="2" step="0.1" value="1"></label>
-    <label>Current Gain <input type="range" data-gain="I" min="0" max="2" step="0.1" value="1"></label>
-    <label>Displacement Gain <input type="range" data-gain="x" min="0" max="2" step="0.1" value="1"></label>
-    <label>Pressure Gain <input type="range" data-gain="P" min="0" max="2" step="0.1" value="1"></label>
-    <label>Flow Rate Gain <input type="range" data-gain="Q" min="0" max="2" step="0.1" value="1"></label>
+    <!-- ======================
+         Primary control
+         ====================== -->
+    <div class="section-primary">
+      <h2>Drive Voltage (Primary)</h2>
+      <label>
+        Voltage Amplitude [V]
+        <input type="range" data-gain="V" min="0" max="2" step="0.1" value="1">
+      </label>
+      <div class="note">
+        ※ Primary control parameter (normally adjusted)
+      </div>
+    </div>
+
+    <!-- ======================
+         Advanced parameters
+         ====================== -->
+    <div class="section-advanced">
+      <h3>Device Parameters (Advanced)</h3>
+      <div class="note">
+        ※ Represent device structure (normally fixed)
+      </div>
+
+      <label>
+        Current Scale [mA]
+        <input type="range" data-gain="I" min="0" max="2" step="0.1" value="1">
+      </label>
+
+      <label>
+        Piezo Coupling [nm/V]
+        <input type="range" data-gain="x" min="0" max="2" step="0.1" value="1">
+      </label>
+
+      <label>
+        Cavity Pressure Gain [kPa/nm]
+        <input type="range" data-gain="P" min="0" max="2" step="0.1" value="1">
+      </label>
+
+      <label>
+        Flow Coefficient [nL/µs/kPa]
+        <input type="range" data-gain="Q" min="0" max="2" step="0.1" value="1">
+      </label>
+    </div>
+
   </aside>
 </div>
 
