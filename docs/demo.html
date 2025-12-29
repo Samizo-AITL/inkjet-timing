@@ -1,12 +1,60 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Inkjet Timing Demo</title>
+
+<style>
+/* 画面全体を黒に固定 */
+html, body {
+  margin: 0;
+  height: 100%;
+  background: #000;
+  color: #ccc;
+  overflow: hidden;
+  font-family: system-ui, sans-serif;
+}
+
+/* 左：波形 / 右：操作 */
+#wrap {
+  display: flex;
+  height: 100vh;
+}
+
+/* 波形（必ず表示される） */
+canvas {
+  flex: 1;
+  display: block;
+  background: #000; /* ← オシロ黒 */
+}
+
+/* 右パネル（カーソルはここ） */
+#panel {
+  width: 260px;
+  padding: 10px;
+  background: #0b0b0b;
+  border-left: 1px solid #222;
+}
+
+label {
+  display: block;
+  font-size: 12px;
+  margin-bottom: 10px;
+}
+
+input[type="range"] {
+  width: 100%;
+}
+</style>
+</head>
+
 <body>
   <div id="wrap">
-    <!-- 左：波形（読むだけ） -->
     <canvas id="canvas"></canvas>
 
-    <!-- 右：操作（Time cursorはここ） -->
     <aside id="panel">
-      <label>
-        Time cursor
+      <label>Time cursor
         <input id="time" type="range">
       </label>
 
@@ -20,3 +68,4 @@
 
   <script type="module" src="main.js"></script>
 </body>
+</html>
