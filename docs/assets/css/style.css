@@ -1,25 +1,30 @@
 <style>
-body {
+html, body {
   margin: 0;
-  background: #111;
-  color: #eee;
+  height: 100%;
+  background: #000;      /* オシロ黒 */
+  color: #ccc;
   font-family: system-ui, sans-serif;
 }
 
-#container {
+#wrap {
   display: flex;
   height: 100vh;
 }
 
+/* 左：波形 */
 canvas {
   flex: 1;
-  border-right: 1px solid #333;
+  background: #000;
+  display: block;
 }
 
+/* 右：操作 */
 #panel {
   width: 260px;
-  padding: 12px;
-  background: #181818;
+  padding: 10px;
+  background: #0b0b0b;
+  border-left: 1px solid #222;
 }
 
 label {
