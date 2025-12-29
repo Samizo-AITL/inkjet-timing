@@ -1,12 +1,234 @@
-let t = 0;
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Inkjet Full-stack Timing</title>
+  <style>
+    :root{
+      --bg:#fff; --fg:#111; --muted:#666; --panel:#f6f7f9; --border:#d0d7de;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono","Courier New", monospace;
+      --sans: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+    }
+    body{ margin:0; font-family:var(--sans); background:var(--bg); color:var(--fg); }
+    .wrap{ max-width:1000px; margin:0 auto; padding:14px; }
+    .title{ display:flex; align-items:baseline; justify-content:space-between; gap:12px; }
+    h2{ margin:0; font-size:20px; }
+    .sub{ color:var(--muted); font-size:12px; }
+    .grid{ display:grid; grid-template-columns: 1fr 300px; gap:12px; margin-top:12px; }
+    .card{ border:1px solid var(--border); border-radius:10px; padding:10px; }
+    canvas{ width:100%; height:540px; display:block; }
+    .panel{ background:var(--panel); }
+    .row{ margin:10px 0; }
+    label{ font-size:12px; color:var(--fg); display:block; margin-bottom:4px; }
+    input[type="range"]{ width:100%; }
+    .mono{ font-family:var(--mono); font-size:12px; color:var(--muted); }
+    .two{ display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+    .btnrow{ display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; }
+    button{
+      border:1px solid var(--border); background:#fff; padding:6px 10px; border-radius:8px; cursor:pointer;
+      font-size:12px;
+    }
+    button:hover{ background:#f3f4f6; }
+    .chk{ display:flex; align-items:center; gap:8px; }
+    .chk label{ margin:0; }
+    .note{ font-size:12px; color:var(--muted); line-height:1.5; margin-top:10px; }
+    @media (max-width: 980px){
+      .grid{ grid-template-columns: 1fr; }
+      canvas{ height:520px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="title">
+      <div>
+        <h2>Inkjet Full-stack Timing</h2>
+        <div class="sub">V(t) → I(t) → Δx(t) → P(t) → Q(t)（単一時間軸スタック / 因果カーソル）</div>
+      </div>
+      <div class="mono" id="status"></div>
+    </div>
 
-function loop() {
-  const data = computeWaveforms(t);
-  draw(ctx, data);
+    <div class="grid">
+      <div class="card">
+        <canvas id="c" width="980" height="560"></canvas>
+      </div>
 
-  t += 0.2;
-  if (t > 20) t = 0;   // ★ 周期リセット
+      <div class="card panel">
+        <div class="row chk">
+          <input id="damper" type="checkbox" checked />
+          <label for="damper">Acoustic damper（反射吸収）</label>
+        </div>
 
-  requestAnimationFrame(loop);
-}
-loop();
+        <div class="row">
+          <label for="damper_strength">Damper strength</label>
+          <input id="damper_strength" type="range" min="0" max="1" step="0.02" value="0.70" />
+          <div class="mono" id="damper_strength_v"></div>
+        </div>
+
+        <div class="row">
+          <label for="V_amp">Drive amplitude V_amp [V]</label>
+          <input id="V_amp" type="range" min="5" max="80" step="1" value="35" />
+          <div class="mono" id="V_amp_v"></div>
+        </div>
+
+        <div class="row two">
+          <div>
+            <label for="zeta">Base damping ζ</label>
+            <input id="zeta" type="range" min="0.02" max="0.55" step="0.01" value="0.18" />
+            <div class="mono" id="zeta_v"></div>
+          </div>
+          <div>
+            <label for="refl_delay">Reflection delay [µs]</label>
+            <input id="refl_delay" type="range" min="1" max="14" step="0.2" value="6.0" />
+            <div class="mono" id="refl_delay_v"></div>
+          </div>
+        </div>
+
+        <div class="row two">
+          <div>
+            <label for="f0">Ring frequency f0 [1/µs]</label>
+            <input id="f0" type="range" min="0.05" max="0.60" step="0.01" value="0.22" />
+            <div class="mono" id="f0_v"></div>
+          </div>
+          <div>
+            <label for="refl_gain">Reflection gain</label>
+            <input id="refl_gain" type="range" min="0" max="1" step="0.02" value="0.65" />
+            <div class="mono" id="refl_gain_v"></div>
+          </div>
+        </div>
+
+        <div class="btnrow">
+          <button id="preset_good">Preset: well-damped</button>
+          <button id="preset_bad">Preset: over-reflection</button>
+          <button id="preset_off">Preset: damper OFF</button>
+        </div>
+
+        <div class="note">
+          操作できるのは「原因側（V・構造パラメータ）」のみです。<br/>
+          P(t)・Q(t) は結果として再計算され、直接操作できません。
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { params } from "./params.js";
+    import { computeStack } from "./model.js";
+    import { drawStack } from "./draw.js";
+
+    const c = document.getElementById("c");
+    const ctx = c.getContext("2d");
+
+    // ---- UI binds ----
+    const $ = (id) => document.getElementById(id);
+
+    function setLabel(id, text){ $(id).textContent = text; }
+
+    function syncUItoParams(){
+      $("damper").checked = params.damper_enabled;
+      $("damper_strength").value = params.damper_strength;
+      $("V_amp").value = params.V_amp;
+      $("zeta").value = params.zeta;
+      $("refl_delay").value = params.refl_delay;
+      $("f0").value = params.f0;
+      $("refl_gain").value = params.refl_gain;
+      refreshLabels();
+    }
+
+    function refreshLabels(){
+      setLabel("damper_strength_v", `damper_strength = ${Number(params.damper_strength).toFixed(2)}`);
+      setLabel("V_amp_v", `V_amp = ${Number(params.V_amp).toFixed(0)} V`);
+      setLabel("zeta_v", `ζ = ${Number(params.zeta).toFixed(2)}`);
+      setLabel("refl_delay_v", `delay = ${Number(params.refl_delay).toFixed(1)} µs`);
+      setLabel("f0_v", `f0 = ${Number(params.f0).toFixed(2)} 1/µs`);
+      setLabel("refl_gain_v", `refl_gain = ${Number(params.refl_gain).toFixed(2)}`);
+    }
+
+    function hook(id, fn){
+      $(id).addEventListener("input", fn);
+      $(id).addEventListener("change", fn);
+    }
+
+    hook("damper", e => { params.damper_enabled = e.target.checked; });
+    hook("damper_strength", e => { params.damper_strength = Number(e.target.value); refreshLabels(); });
+    hook("V_amp", e => { params.V_amp = Number(e.target.value); refreshLabels(); });
+    hook("zeta", e => { params.zeta = Number(e.target.value); refreshLabels(); });
+    hook("refl_delay", e => { params.refl_delay = Number(e.target.value); refreshLabels(); });
+    hook("f0", e => { params.f0 = Number(e.target.value); refreshLabels(); });
+    hook("refl_gain", e => { params.refl_gain = Number(e.target.value); refreshLabels(); });
+
+    // ---- presets ----
+    $("preset_good").onclick = () => {
+      params.damper_enabled = true;
+      params.damper_strength = 0.75;
+      params.zeta = 0.22;
+      params.refl_gain = 0.60;
+      params.refl_delay = 6.0;
+      params.f0 = 0.22;
+      params.V_amp = 35;
+      syncUItoParams();
+      recompute();
+    };
+    $("preset_bad").onclick = () => {
+      params.damper_enabled = true;
+      params.damper_strength = 0.10;
+      params.zeta = 0.08;
+      params.refl_gain = 0.95;
+      params.refl_delay = 7.5;
+      params.f0 = 0.18;
+      params.V_amp = 45;
+      syncUItoParams();
+      recompute();
+    };
+    $("preset_off").onclick = () => {
+      params.damper_enabled = false;
+      params.damper_strength = 0.00;
+      params.zeta = 0.12;
+      params.refl_gain = 0.80;
+      params.refl_delay = 6.5;
+      params.f0 = 0.22;
+      params.V_amp = 40;
+      syncUItoParams();
+      recompute();
+    };
+
+    // ---- compute & animate cursor ----
+    let stack = computeStack(params);
+
+    function recompute(){
+      stack = computeStack(params);
+    }
+
+    // recompute on any UI change (cheap enough for this scale)
+    ["damper","damper_strength","V_amp","zeta","refl_delay","f0","refl_gain"].forEach(id=>{
+      $(id).addEventListener("input", () => { recompute(); });
+      $(id).addEventListener("change", () => { recompute(); });
+    });
+
+    // cursor sweeps across [0, T_us]
+    let cursor = 0.0;
+    const speed = 0.35; // [µs/frame] (visual speed)
+
+    function tick(){
+      cursor += speed;
+      if (cursor > params.T_us) cursor = 0.0;
+
+      drawStack(ctx, stack, {
+        cursor_us: cursor,
+        showDelay: true,
+        refl_delay_us: params.refl_delay,
+      });
+
+      $("status").textContent =
+        `damper=${params.damper_enabled ? "ON" : "OFF"} | V_amp=${params.V_amp.toFixed(0)}V`;
+
+      requestAnimationFrame(tick);
+    }
+
+    syncUItoParams();
+    recompute();
+    tick();
+  </script>
+</body>
+</html>
