@@ -49,7 +49,6 @@ h2{ margin:0; font-size:20px; }
 }
 canvas{
   width:100%;
-  height:520px;      /* ← ここで固定 */
   display:block;
 }
 
@@ -59,8 +58,8 @@ canvas{
   border-radius:12px;
   background:var(--panel);
   padding:12px;
-  max-height:540px;
-  overflow-y:auto;   /* ← 右だけスクロール */
+  max-height:640px;
+  overflow-y:auto;
 }
 label{ font-size:12px; display:block; margin-top:12px; }
 input[type="range"]{ width:100%; }
@@ -79,7 +78,8 @@ input[type="range"]{ width:100%; }
     <div>
       <h2>Inkjet Full-stack Timing</h2>
       <div class="sub">
-        V(t) → I(t) → Δx(t) → P(t) → Q(t) (fixed waveform + time cursor)
+        V(t) → I(t) → Δx(t) → P(t) → Q(t)  
+        (fixed waveforms + time cursor, oscilloscope-style)
       </div>
     </div>
     <div class="status" id="status"></div>
@@ -125,21 +125,37 @@ import { computeStack } from "./model.js";
 import { drawStack } from "./draw.js";
 
 const canvas = document.getElementById("c");
+
+/* ===== CRITICAL FIX: canvas height is defined by JS, not CSS ===== */
 function setupCanvas(){
   const dpr = window.devicePixelRatio || 1;
-  const r = canvas.getBoundingClientRect();
-  canvas.width  = r.width * dpr;
-  canvas.height = r.height * dpr;
+
+  const CHANNELS = 5;      // V, I, Δx, P, Q
+  const ROW_H = 110;       // px per channel (logical)
+  const PAD_T = 10;
+  const PAD_B = 10;
+
+  const logicalHeight = CHANNELS * ROW_H + PAD_T + PAD_B;
+
+  const rect = canvas.getBoundingClientRect();
+  canvas.width  = rect.width * dpr;
+  canvas.height = logicalHeight * dpr;
+
+  canvas.style.height = logicalHeight + "px";
+
   const ctx = canvas.getContext("2d");
   ctx.setTransform(dpr,0,0,dpr,0,0);
   return ctx;
 }
-let ctx = setupCanvas();
-window.onresize = ()=> ctx = setupCanvas();
 
+let ctx = setupCanvas();
+window.addEventListener("resize", () => {
+  ctx = setupCanvas();
+});
+
+/* ===== UI binding ===== */
 const $ = id=>document.getElementById(id);
 
-// UI binding
 $("damper").checked = params.damper_enabled;
 $("damper_strength").value = params.damper_strength;
 $("V_amp").value = params.V_amp;
@@ -150,21 +166,25 @@ $("refl_gain").value = params.refl_gain;
 
 ["damper","damper_strength","V_amp","zeta","refl_delay","f0","refl_gain"].forEach(id=>{
   $(id).oninput = e=>{
-    params[id==="damper"?"damper_enabled":id] =
+    params[id==="damper" ? "damper_enabled" : id] =
       (id==="damper") ? e.target.checked : Number(e.target.value);
     stack = computeStack(params);
   };
 });
 
+/* ===== animation ===== */
 let stack = computeStack(params);
 let cursor = 0;
 
 function loop(){
   cursor += 0.35;
   if(cursor > params.T_us) cursor = 0;
+
   drawStack(ctx, stack, { cursor_us: cursor });
+
   $("status").textContent =
-    `t=${cursor.toFixed(2)} µs | damper=${params.damper_enabled?"ON":"OFF"} | V_amp=${params.V_amp.toFixed(0)} V`;
+    `t = ${cursor.toFixed(2)} µs | damper = ${params.damper_enabled?"ON":"OFF"} | V_amp = ${params.V_amp.toFixed(0)} V`;
+
   requestAnimationFrame(loop);
 }
 loop();
