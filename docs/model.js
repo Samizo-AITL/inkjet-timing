@@ -13,16 +13,16 @@ export function simulate() {
   /* =========================
      Electrical parameters
      ========================= */
-  const Cpiezo = 2e-9;   // [F] 圧電等価容量
-  const Rloss  = 5e5;    // [Ohm] 誘電損失
-  const tr     = 0.5e-6; // [s] 立上り・立下り時間
+  const Cpiezo = 2e-9;   // [F] piezo capacitance
+  const Rloss  = 5e5;    // [Ohm] dielectric loss
+  const tr     = 0.5e-6; // [s] rise / fall time
 
   for (let i = 0; i < N; i++) {
     const ti = i * DT;
     t.push(ti);
 
     /* =========================
-       1. Drive Voltage (finite slope)
+       1. Drive Voltage (Primary)
        ========================= */
     let v_drive = 0;
 
@@ -40,18 +40,22 @@ export function simulate() {
     V.push(v);
 
     /* =========================
-       2. Current (capacitive + loss)
+       2. Current (Result) [mA]
        ========================= */
     const dv = (v - v_prev) / DT;
-    const ii = gains.I * (Cpiezo * dv + v / Rloss);
-    I.push(ii);
+
+    // A → mA conversion (IMPORTANT)
+    const ii_mA =
+      gains.I * 1e3 * (Cpiezo * dv + v / Rloss);
+
+    I.push(ii_mA);
     v_prev = v;
 
     /* =========================
        3. Piezo Displacement
           Δx ← V
        ========================= */
-    const tau_x = 5e-6; // 機械応答
+    const tau_x = 5e-6;
     const x_target = gains.x * v;
     const xx = x_prev + (DT / tau_x) * (x_target - x_prev);
     x.push(xx);
@@ -61,7 +65,7 @@ export function simulate() {
        4. Cavity Pressure
           P ← Δx
        ========================= */
-    const tau_p = 8e-6; // 音響応答
+    const tau_p = 8e-6;
     const p_target = gains.P * xx;
     const pp = p_prev + (DT / tau_p) * (p_target - p_prev);
     P.push(pp);
