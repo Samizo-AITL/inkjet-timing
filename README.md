@@ -84,4 +84,14 @@ https://samizo-aitl.github.io/inkjet-timing/index.html
 
 ## License
 
-MIT (or specify if different)
+### Code
+All source code (HTML, JavaScript, CSS) is released under the MIT License.
+
+### Conceptual Model & Documentation
+The physical interpretations, causal structure, and architectural explanations
+presented in this repository are provided for educational and research purposes.
+
+Reuse or derivative work based on the **conceptual model or design methodology**
+should include proper attribution and is not intended for direct commercial reuse
+without independent validation.
+
