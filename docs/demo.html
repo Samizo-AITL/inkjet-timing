@@ -14,31 +14,66 @@ html, body {
   font-family: system-ui, sans-serif;
   overflow: hidden;
 }
+
 #wrap {
   display: flex;
   height: 100vh;
 }
+
 canvas {
   flex: 1;
   background: #000;
 }
+
 #panel {
   width: 300px;
   padding: 12px;
   background: #0b0b0b;
   border-left: 1px solid #222;
   box-sizing: border-box;
+  overflow-y: auto;
 }
 
 /* ===== Typography ===== */
 h1 { font-size: 16px; margin: 0 0 6px; }
 h2 { font-size: 13px; margin: 12px 0 6px; color: #9cf; }
 h3 { font-size: 12px; margin: 10px 0 4px; color: #888; }
-a { color: #9cf; font-size: 12px; text-decoration: none; }
-label { display: block; font-size: 12px; margin-top: 8px; }
-input[type="range"] { width: 100%; }
-#values { font-size: 12px; line-height: 1.5; margin-top: 6px; }
-hr { border: none; border-top: 1px solid #222; margin: 12px 0; }
+a  { color: #9cf; font-size: 12px; text-decoration: none; }
+
+label {
+  display: block;
+  font-size: 12px;
+  margin-top: 8px;
+}
+
+input[type="range"] {
+  width: 100%;
+}
+
+button {
+  width: 100%;
+  margin-top: 6px;
+  padding: 6px 0;
+  background: #1a1a1a;
+  color: #eee;
+  border: 1px solid #333;
+  cursor: pointer;
+}
+button:hover {
+  background: #222;
+}
+
+#values {
+  font-size: 12px;
+  line-height: 1.5;
+  margin-top: 6px;
+}
+
+hr {
+  border: none;
+  border-top: 1px solid #222;
+  margin: 12px 0;
+}
 
 /* ===== Section styling ===== */
 .section-primary {
@@ -51,7 +86,7 @@ hr { border: none; border-top: 1px solid #222; margin: 12px 0; }
   margin-top: 14px;
   padding-top: 10px;
   border-top: 1px dashed #333;
-  opacity: 0.7;
+  opacity: 0.75;
 }
 
 .note {
@@ -64,18 +99,27 @@ hr { border: none; border-top: 1px solid #222; margin: 12px 0; }
 
 <body>
 <div id="wrap">
+
+  <!-- ===== Canvas ===== -->
   <canvas id="canvas"></canvas>
 
+  <!-- ===== Control Panel ===== -->
   <aside id="panel">
     <h1>Inkjet Timing Visualization</h1>
     <a href="index.html">← Back to Overview</a>
 
     <hr>
 
-    <label>Time Cursor
+    <!-- ===== Time Cursor ===== -->
+    <label>
+      Time Cursor
       <input id="time" type="range">
     </label>
 
+    <!-- RUN / STOP -->
+    <button id="run">RUN</button>
+
+    <!-- ===== Values ===== -->
     <div id="values">
       <div>t = <span id="tv">0.0</span> µs</div>
       <div>V(t) = <span id="vV">0.00</span> V</div>
@@ -94,7 +138,8 @@ hr { border: none; border-top: 1px solid #222; margin: 12px 0; }
       <h2>Drive Voltage (Primary)</h2>
       <label>
         Voltage Amplitude [V]
-        <input type="range" data-gain="V" min="0" max="2" step="0.1" value="1">
+        <input type="range" data-gain="V"
+               min="0" max="2" step="0.1" value="1">
       </label>
       <div class="note">
         ※ Primary control parameter (normally adjusted)
@@ -112,28 +157,33 @@ hr { border: none; border-top: 1px solid #222; margin: 12px 0; }
 
       <label>
         Current Scale [mA]
-        <input type="range" data-gain="I" min="0" max="2" step="0.1" value="1">
+        <input type="range" data-gain="I"
+               min="0" max="2" step="0.1" value="1">
       </label>
 
       <label>
         Piezo Coupling [nm/V]
-        <input type="range" data-gain="x" min="0" max="2" step="0.1" value="1">
+        <input type="range" data-gain="x"
+               min="0" max="2" step="0.1" value="1">
       </label>
 
       <label>
         Cavity Pressure Gain [kPa/nm]
-        <input type="range" data-gain="P" min="0" max="2" step="0.1" value="1">
+        <input type="range" data-gain="P"
+               min="0" max="2" step="0.1" value="1">
       </label>
 
       <label>
         Flow Coefficient [nL/µs/kPa]
-        <input type="range" data-gain="Q" min="0" max="2" step="0.1" value="1">
+        <input type="range" data-gain="Q"
+               min="0" max="2" step="0.1" value="1">
       </label>
     </div>
-
   </aside>
+
 </div>
 
+<!-- ===== Main Script ===== -->
 <script type="module" src="main.js"></script>
 </body>
 </html>
