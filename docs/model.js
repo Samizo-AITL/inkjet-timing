@@ -41,7 +41,7 @@ export function simulate() {
      Current (display only)
      ========================= */
   for (let i = 1; i < N; i++) {
-    I[i] = gains.I * (V[i] - V[i - 1]) / dt * 1e-6;
+    I[i] = 0.5 * gains.I * (V[i] - V[i - 1]) / dt * 1e-6;
   }
   I[0] = 0;
 
