@@ -1,6 +1,6 @@
 import { setGain } from "./params.js";
 import { simulate } from "./model.js";
-import { draw } from "./draw.js";
+import { draw, resetRanges } from "./draw.js";
 
 window.addEventListener("DOMContentLoaded", () => {
   /* =========================
@@ -28,14 +28,16 @@ window.addEventListener("DOMContentLoaded", () => {
   slider.min = 0;
   slider.max = data.t.length - 1;
   slider.step = 1;
+
+  // 初期位置：駆動パルス中
   slider.value = Math.floor(data.t.length * 0.35);
 
   /* =========================
-     RUN control（安全対応）
+     RUN control
      ========================= */
-  const runBtn = document.getElementById("run"); // ← HTML側に追加
+  const runBtn = document.getElementById("run");
   let isRunning = false;
-  let playSpeed = 1;
+  let playSpeed = 1; // index / frame
 
   if (runBtn) {
     runBtn.addEventListener("click", () => {
@@ -49,6 +51,7 @@ window.addEventListener("DOMContentLoaded", () => {
      ========================= */
   function update() {
     const idx = +slider.value;
+
     draw(ctx, data, idx);
 
     document.getElementById("tv").textContent =
@@ -70,8 +73,13 @@ window.addEventListener("DOMContentLoaded", () => {
       data.Q[idx].toFixed(2);
   }
 
+  // 初回描画
+  resetRanges();
   update();
-  slider.addEventListener("input", update);
+
+  slider.addEventListener("input", () => {
+    update();
+  });
 
   /* =========================
      Animation loop
@@ -79,7 +87,11 @@ window.addEventListener("DOMContentLoaded", () => {
   function animate() {
     if (isRunning) {
       let idx = +slider.value + playSpeed;
-      if (idx >= data.t.length) idx = 0;
+
+      if (idx >= data.t.length) {
+        idx = 0; // ループ
+      }
+
       slider.value = idx;
       update();
     }
@@ -95,10 +107,18 @@ window.addEventListener("DOMContentLoaded", () => {
       const key = e.target.dataset.gain;
       const value = +e.target.value;
 
+      // ゲイン更新
       setGain(key, value);
+
+      // 再シミュレーション
       data = simulate();
 
+      // 描画レンジをリセット（←重要）
+      resetRanges();
+
+      // スライダー範囲を同期
       slider.max = data.t.length - 1;
+
       update();
     });
   });
