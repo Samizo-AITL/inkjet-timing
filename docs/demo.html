@@ -1,29 +1,21 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Inkjet Timing Demo</title>
-<style>
-  body { background:#111; color:#eee; font-family:sans-serif; }
-  canvas { border:1px solid #333; display:block; margin-bottom:10px; }
-  label { display:block; font-size:12px; }
-</style>
-</head>
 <body>
+<div id="container">
 
-<canvas id="canvas" width="1000" height="500"></canvas>
+  <canvas id="canvas" width="1000" height="500"></canvas>
 
-<label>Time cursor
-  <input id="time" type="range" value="0">
-</label>
+  <div id="panel">
+    <label>Time cursor
+      <input id="time" type="range">
+    </label>
 
-<label>V gain <input type="range" data-gain="V" min="0" max="2" step="0.1" value="1"></label>
-<label>I gain <input type="range" data-gain="I" min="0" max="2" step="0.1" value="1"></label>
-<label>x gain <input type="range" data-gain="x" min="0" max="2" step="0.1" value="1"></label>
-<label>P gain <input type="range" data-gain="P" min="0" max="2" step="0.1" value="1"></label>
-<label>Q gain <input type="range" data-gain="Q" min="0" max="2" step="0.1" value="1"></label>
+    <label>V gain <input type="range" data-gain="V" min="0" max="2" step="0.1" value="1"></label>
+    <label>I gain <input type="range" data-gain="I" min="0" max="2" step="0.1" value="1"></label>
+    <label>x gain <input type="range" data-gain="x" min="0" max="2" step="0.1" value="1"></label>
+    <label>P gain <input type="range" data-gain="P" min="0" max="2" step="0.1" value="1"></label>
+    <label>Q gain <input type="range" data-gain="Q" min="0" max="2" step="0.1" value="1"></label>
+  </div>
+
+</div>
 
 <script type="module" src="main.js"></script>
 </body>
-</html>
