@@ -1,21 +1,22 @@
 <body>
-<div id="container">
+  <div id="wrap">
+    <!-- 左：波形（読むだけ） -->
+    <canvas id="canvas"></canvas>
 
-  <canvas id="canvas" width="1000" height="500"></canvas>
+    <!-- 右：操作（Time cursorはここ） -->
+    <aside id="panel">
+      <label>
+        Time cursor
+        <input id="time" type="range">
+      </label>
 
-  <div id="panel">
-    <label>Time cursor
-      <input id="time" type="range">
-    </label>
-
-    <label>V gain <input type="range" data-gain="V" min="0" max="2" step="0.1" value="1"></label>
-    <label>I gain <input type="range" data-gain="I" min="0" max="2" step="0.1" value="1"></label>
-    <label>x gain <input type="range" data-gain="x" min="0" max="2" step="0.1" value="1"></label>
-    <label>P gain <input type="range" data-gain="P" min="0" max="2" step="0.1" value="1"></label>
-    <label>Q gain <input type="range" data-gain="Q" min="0" max="2" step="0.1" value="1"></label>
+      <label>V <input type="range" data-gain="V" min="0" max="2" step="0.1" value="1"></label>
+      <label>I <input type="range" data-gain="I" min="0" max="2" step="0.1" value="1"></label>
+      <label>x <input type="range" data-gain="x" min="0" max="2" step="0.1" value="1"></label>
+      <label>P <input type="range" data-gain="P" min="0" max="2" step="0.1" value="1"></label>
+      <label>Q <input type="range" data-gain="Q" min="0" max="2" step="0.1" value="1"></label>
+    </aside>
   </div>
 
-</div>
-
-<script type="module" src="main.js"></script>
+  <script type="module" src="main.js"></script>
 </body>
