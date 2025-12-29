@@ -7,11 +7,11 @@ export function drawStack(ctx, stack, gains, cursor) {
   ctx.fillRect(0, 0, W, H);
 
   const channels = [
-    { k: "V", y: 80,  c: "yellow", l: "V(t)", s: 1 },
-    { k: "I", y: 180, c: "cyan",   l: "I(t)", s: 1 },
-    { k: "x", y: 280, c: "orange", l: "Δx(t)", s: 1 },
-    { k: "P", y: 380, c: "red",    l: "P(t)", s: 1 },
-    { k: "Q", y: 480, c: "lime",   l: "Q(t)", s: 1 },
+    { k: "V", y: 80,  c: "yellow", l: "V(t)" },
+    { k: "I", y: 180, c: "cyan",   l: "I(t)" },
+    { k: "x", y: 280, c: "orange", l: "Δx(t)" },
+    { k: "P", y: 380, c: "red",    l: "P(t)" },
+    { k: "Q", y: 480, c: "lime",   l: "Q(t)" },
   ];
 
   // grid
@@ -26,7 +26,7 @@ export function drawStack(ctx, stack, gains, cursor) {
 
   channels.forEach(ch => {
     const d = stack[ch.k];
-    const g = gains[ch.k] * ch.s;
+    const g = gains[ch.k];
 
     // zero line
     ctx.strokeStyle = "rgba(255,255,255,0.15)";
@@ -42,8 +42,7 @@ export function drawStack(ctx, stack, gains, cursor) {
     for (let i = 0; i < d.length; i++) {
       const x = (i / (d.length - 1)) * W;
       const y = ch.y - d[i] * g;
-      if (i === 0) ctx.moveTo(x, y);
-      else ctx.lineTo(x, y);
+      i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
     }
     ctx.stroke();
 
