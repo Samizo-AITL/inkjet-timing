@@ -3,6 +3,9 @@ import { simulate } from "./model.js";
 import { draw } from "./draw.js";
 
 window.addEventListener("DOMContentLoaded", () => {
+  /* =========================
+     Canvas
+     ========================= */
   const canvas = document.getElementById("canvas");
   const ctx = canvas.getContext("2d");
 
@@ -13,13 +16,34 @@ window.addEventListener("DOMContentLoaded", () => {
   resize();
   window.addEventListener("resize", resize);
 
+  /* =========================
+     Data
+     ========================= */
   let data = simulate();
 
+  /* =========================
+     Time cursor
+     ========================= */
   const slider = document.getElementById("time");
   slider.min = 0;
   slider.max = data.t.length - 1;
+  slider.step = 1;
   slider.value = Math.floor(data.t.length * 0.35);
 
+  /* =========================
+     RUN control（←これが欠けていた）
+     ========================= */
+  const runBtn = document.getElementById("run");
+  let isRunning = false;
+
+  runBtn.addEventListener("click", () => {
+    isRunning = !isRunning;
+    runBtn.textContent = isRunning ? "STOP" : "RUN";
+  });
+
+  /* =========================
+     Update
+     ========================= */
   function update() {
     const idx = +slider.value;
     draw(ctx, data, idx);
@@ -35,6 +59,23 @@ window.addEventListener("DOMContentLoaded", () => {
   update();
   slider.addEventListener("input", update);
 
+  /* =========================
+     Animation loop（←RUN の正体）
+     ========================= */
+  function animate() {
+    if (isRunning) {
+      let idx = +slider.value + 1;
+      if (idx >= data.t.length) idx = 0;
+      slider.value = idx;
+      update();
+    }
+    requestAnimationFrame(animate);
+  }
+  animate();
+
+  /* =========================
+     Gain sliders
+     ========================= */
   document.querySelectorAll("input[data-gain]").forEach(el => {
     el.addEventListener("input", e => {
       setGain(e.target.dataset.gain, +e.target.value);
