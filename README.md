@@ -12,14 +12,16 @@ connected during inkjet droplet ejection.
 
 A single time axis is shared across the following signals:
 
-- Drive voltage $V(t)$  
-- Current response $I(t)$  
-- Mechanical displacement $\Delta x(t)$  
-- Channel pressure $P(t)$  
-- Ink flow response ($Q_{out}$ / $Q_{in}$)
+- Drive voltage **V(t)**
+- Current response **I(t)**
+- Mechanical displacement **Δx(t)**
+- Channel pressure **P(t)**
+- Ink flow response **Q(t)** (outflow / inflow)
 
 Each waveform belongs to a different physical domain, but all are
 **causally linked in time**.
+The visualization emphasizes **temporal ordering, delay, and phase
+relationships** rather than numerical accuracy.
 
 ---
 
@@ -32,9 +34,18 @@ Inkjet actuation is fundamentally:
 - completed within microseconds
 
 There is no opportunity for closed-loop feedback during droplet
-formation.  
-Stability is achieved through **waveform design, mechanical damping,
-and fluidic architecture**, not gain tuning.
+formation.
+
+System stability is achieved through:
+
+- waveform design
+- mechanical damping
+- acoustic and fluidic architecture
+
+—not through gain tuning or feedback control.
+
+This makes inkjet actuation categorically different from
+PID-controlled systems.
 
 ---
 
@@ -49,11 +60,29 @@ physical intuition**, not numerical prediction.
 
 ---
 
+## How to read the visualization
+
+- The vertical axis is stacked by physical domain:
+  - Electrical → Mechanical → Fluidic (top to bottom)
+- The horizontal axis represents time (microsecond scale)
+- A single time cursor highlights the instantaneous state across all domains
+- Dots indicate the value of each signal at the cursor time
+
+The display is designed to be read similarly to an oscilloscope or
+logic analyzer, but across multiple physical domains.
+
+---
+
 ## Live demo (GitHub Pages)
 
-👉 Open the interactive timing chart:
+👉 **Interactive browser-based visualization:**
 
-https://<your-github-id>.github.io/inkjet-timing/
+https://samizo-aitl.github.io/inkjet-timing/index.html
+
+- No installation required
+- Runs entirely in the browser
+- Gain parameters can be adjusted interactively
+- Intended for exploration, explanation, and review
 
 ---
 
@@ -71,27 +100,29 @@ Inkjet waveform engineering can be viewed as a
 
 ---
 
-## 🔗 Live Demo (GitHub Pages)
-
-👉 **Interactive animation (browser-based):**  
-https://samizo-aitl.github.io/inkjet-timing/index.html
-
-- No installation required
-- Runs entirely in the browser
-- Parameters (e.g. acoustic damper ON/OFF) can be adjusted interactively
-
----
-
 ## License
 
 ### Code
-All source code (HTML, JavaScript, CSS) is released under the MIT License.
 
-### Conceptual Model & Documentation
-The physical interpretations, causal structure, and architectural explanations
-presented in this repository are provided for educational and research purposes.
+All source code in this repository (HTML, JavaScript, CSS) is released
+under the **MIT License**.
 
-Reuse or derivative work based on the **conceptual model or design methodology**
-should include proper attribution and is not intended for direct commercial reuse
-without independent validation.
+### Conceptual model and documentation
 
+The physical interpretations, causal structure, and architectural
+explanations presented here are provided for **educational and research
+purposes**.
+
+Reuse or derivative work based on the **conceptual model, causal
+representation, or design methodology** should include proper
+attribution and is not intended for direct commercial reuse without
+independent validation.
+
+---
+
+## Notes
+
+This project is intentionally simplified to support clear reasoning
+about timing and causality.
+It is not a substitute for detailed multiphysics simulation or
+hardware-specific waveform optimization.
