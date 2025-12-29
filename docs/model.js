@@ -26,9 +26,9 @@ export function simulate() {
 
   /* =========================
      Drive voltage waveform
-     （※ ここは一切変更していない）
+     （Voltage Amplitude が直接効く）
      ========================= */
-  const Vamp = 1.0; // ← 波形形状用（固定）
+  const Vamp = gains.V;
 
   for (let i = 0; i < N; i++) {
     const ti = t[i] * 1e6; // µs
@@ -55,19 +55,18 @@ export function simulate() {
   /* =========================
      Piezo displacement Δx(t)
      ========================= */
-  const kx = gains.x; // [nm/V]
+  const kx = gains.x;
   let xState = 0;
 
   for (let i = 0; i < N; i++) {
-    // ★ Voltage Amplitude を「駆動強度」としてここで掛ける
-    xState += (kx * gains.V * V[i] - xState) * 0.05;
+    xState += (kx * V[i] - xState) * 0.05;
     x[i] = xState;
   }
 
   /* =========================
      Cavity pressure P(t)
      ========================= */
-  const kp = gains.P; // [kPa/nm]
+  const kp = gains.P;
   let pState = 0;
 
   for (let i = 0; i < N; i++) {
@@ -78,7 +77,7 @@ export function simulate() {
   /* =========================
      Flow rate Q(t)
      ========================= */
-  const kq = gains.Q; // [nL/µs/kPa]
+  const kq = gains.Q;
   let qState = 0;
 
   for (let i = 0; i < N; i++) {
