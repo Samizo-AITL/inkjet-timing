@@ -1,32 +1,40 @@
 // draw.js — Fixed waveform + time cursor (FULL)
+// Row-weighted layout so the bottom channel (Q) never gets clipped.
 
 export function drawStack(ctx, stack, ui){
   const { canvas } = ctx;
   const W = canvas.width;
   const H = canvas.height;
 
-  const padL = 70, padR = 20, padT = 20, padB = 20;
+  /* ===== layout ===== */
+  const padL = 70;
+  const padR = 20;
+  const padT = 10;   // tightened
+  const padB = 10;   // tightened
+
   const plotW = W - padL - padR;
   const plotH = H - padT - padB;
 
+  /* ===== channels (row weights) ===== */
   const rows = [
-    { key:"V", label:"V(t)  [drive]",      color:"#00ff88" },
-    { key:"I", label:"I(t)  [current]",    color:"#ffd400" },
-    { key:"x", label:"Δx(t) [mechanical]", color:"#ff8800" },
-    { key:"P", label:"P(t)  [pressure]",   color:"#ff4d4d" },
-    { key:"Q", label:"Q(t)  [ink flow]",   color:"#4da6ff" },
+    { key:"V", label:"V(t)  [drive]",      color:"#00ff88", weight:1.0 },
+    { key:"I", label:"I(t)  [current]",    color:"#ffd400", weight:1.0 },
+    { key:"x", label:"Δx(t) [mechanical]", color:"#ff8800", weight:1.0 },
+    { key:"P", label:"P(t)  [pressure]",   color:"#ff4d4d", weight:1.0 },
+    { key:"Q", label:"Q(t)  [ink flow]",   color:"#4da6ff", weight:1.3 }, // ← 下段を広く
   ];
 
-  const nRow = rows.length;
-  const rowH = plotH / nRow;
+  const weights = rows.map(r => r.weight);
+  const sumW = weights.reduce((a,b)=>a+b,0);
+
   const t = stack.t;
   const tEnd = t[t.length - 1];
 
-  /* ===== clear (solid black) ===== */
+  /* ===== clear ===== */
   ctx.fillStyle = "#000";
   ctx.fillRect(0, 0, W, H);
 
-  /* ===== grid ===== */
+  /* ===== grid (vertical time grid) ===== */
   ctx.lineWidth = 1;
   ctx.strokeStyle = "#111";
   for(let i=0;i<=10;i++){
@@ -36,46 +44,56 @@ export function drawStack(ctx, stack, ui){
     ctx.lineTo(x, padT + plotH);
     ctx.stroke();
   }
-  for(let i=0;i<=nRow;i++){
-    const y = padT + rowH * i;
-    ctx.beginPath();
-    ctx.moveTo(padL, y);
-    ctx.lineTo(padL + plotW, y);
-    ctx.stroke();
-  }
 
+  /* ===== rows ===== */
   ctx.font = "12px ui-monospace";
-  ctx.fillStyle = "#aaa";
+  let yCursor = padT;
 
-  /* ===== waveforms ===== */
-  for(let r=0;r<nRow;r++){
+  for(let r=0;r<rows.length;r++){
     const row = rows[r];
-    const y0 = padT + r * rowH;
-    const yMid = y0 + rowH/2;
+    const rowH = plotH * row.weight / sumW;
+    const yMid = yCursor + rowH / 2;
 
-    // zero line
+    /* horizontal grid / separator */
+    ctx.strokeStyle = "#111";
+    ctx.beginPath();
+    ctx.moveTo(padL, yCursor);
+    ctx.lineTo(padL + plotW, yCursor);
+    ctx.stroke();
+
+    /* zero line */
     ctx.strokeStyle = "#222";
     ctx.beginPath();
     ctx.moveTo(padL, yMid);
     ctx.lineTo(padL + plotW, yMid);
     ctx.stroke();
 
-    // label
+    /* label */
     ctx.fillStyle = "#aaa";
-    ctx.fillText(row.label, 10, y0 + 14);
+    ctx.fillText(row.label, 10, yCursor + 14);
 
-    // waveform
+    /* waveform */
     ctx.strokeStyle = row.color;
     ctx.lineWidth = 2;
     ctx.beginPath();
+
     for(let i=0;i<t.length;i++){
-      const x = padL + plotW * (t[i]/tEnd);
-      const y = yMid - stack[row.key][i] * rowH * 0.42;
-      if(i===0) ctx.moveTo(x,y);
-      else ctx.lineTo(x,y);
+      const x = padL + plotW * (t[i] / tEnd);
+      const y = yMid - stack[row.key][i] * rowH * 0.35; // ← 振幅抑制
+      if(i === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
     }
     ctx.stroke();
+
+    yCursor += rowH;
   }
+
+  /* bottom border */
+  ctx.strokeStyle = "#111";
+  ctx.beginPath();
+  ctx.moveTo(padL, padT + plotH);
+  ctx.lineTo(padL + plotW, padT + plotH);
+  ctx.stroke();
 
   /* ===== time cursor ===== */
   const xc = padL + plotW * (ui.cursor_us / tEnd);
