@@ -1,194 +1,53 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Inkjet Full-stack Timing</title>
-
-  <style>
-    :root{
-      --bg:#ffffff;
-      --fg:#111111;
-      --muted:#666666;
-      --panel:#f6f7f9;
-      --border:#d0d7de;
-      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono","Courier New", monospace;
-      --sans: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
-    }
-
-    body{
-      margin:0;
-      font-family:var(--sans);
-      background:var(--bg);
-      color:var(--fg);
-    }
-
-    .wrap{
-      max-width:1000px;
-      margin:0 auto;
-      padding:14px;
-    }
-
-    h2{ margin:0; font-size:20px; }
-    .sub{ font-size:12px; color:var(--muted); }
-
-    .grid{
-      display:grid;
-      grid-template-columns: 1fr 300px;
-      gap:12px;
-      margin-top:12px;
-    }
-
-    .card{
-      border:1px solid var(--border);
-      border-radius:10px;
-      padding:10px;
-    }
-
-    canvas{
-      width:100%;
-      height:540px;
-      display:block;
-      background:#fff;
-    }
-
-    .panel{ background:var(--panel); }
-
-    label{
-      font-size:12px;
-      display:block;
-      margin-bottom:4px;
-    }
-
-    input[type="range"]{ width:100%; }
-
-    .mono{
-      font-family:var(--mono);
-      font-size:12px;
-      color:var(--muted);
-    }
-
-    button{
-      border:1px solid var(--border);
-      background:#fff;
-      padding:6px 10px;
-      border-radius:8px;
-      cursor:pointer;
-      font-size:12px;
-    }
-
-    button:hover{ background:#f3f4f6; }
-
-    @media (max-width: 980px){
-      .grid{ grid-template-columns: 1fr; }
-      canvas{ height:520px; }
-    }
-  </style>
+<meta charset="utf-8">
+<title>Inkjet Full-stack Timing</title>
+<style>
+  body { margin:0; background:#111; color:#ccc; font-family:system-ui; }
+  .wrap { max-width:1000px; margin:auto; padding:12px; }
+  canvas { width:100%; height:560px; background:#000; display:block; }
+  label { font-size:12px; }
+</style>
 </head>
 
 <body>
 <div class="wrap">
   <h2>Inkjet Full-stack Timing</h2>
-  <div class="sub">
-    Voltage → Current → Mechanical Displacement → Pressure → Ink Flow
-  </div>
-
-  <div class="grid">
-    <div class="card">
-      <canvas id="c"></canvas>
-    </div>
-
-    <div class="card panel">
-      <label>
-        <input id="damper" type="checkbox" checked>
-        Acoustic Damper (reflection absorption)
-      </label>
-
-      <label>Damper strength</label>
-      <input id="damper_strength" type="range" min="0" max="1" step="0.02" value="0.7">
-      <div class="mono" id="damper_strength_v"></div>
-
-      <label>Drive voltage amplitude [V]</label>
-      <input id="V_amp" type="range" min="5" max="80" step="1" value="35">
-      <div class="mono" id="V_amp_v"></div>
-    </div>
-  </div>
+  <p>V(t) → I(t) → Δx(t) → P(t) → Q(t)</p>
+  <canvas id="c"></canvas>
 </div>
 
 <script type="module">
-  import { params } from "./params.js";
-  import { computeStack } from "./model.js";
-  import { drawStack } from "./draw.js";
+import { params } from "./params.js";
+import { computeStack } from "./model.js";
+import { drawStack } from "./draw.js";
 
-  const canvas = document.getElementById("c");
+const canvas = document.getElementById("c");
 
-  /* ===== CRITICAL FIX =====
-     Sync canvas resolution with CSS size (GitHub Pages safe)
-  */
-  function setupCanvas(c){
-    const dpr = window.devicePixelRatio || 1;
-    const rect = c.getBoundingClientRect();
-    c.width  = Math.floor(rect.width  * dpr);
-    c.height = Math.floor(rect.height * dpr);
-    const ctx = c.getContext("2d");
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    return ctx;
-  }
+function resize(c){
+  const dpr = window.devicePixelRatio || 1;
+  const r = c.getBoundingClientRect();
+  c.width = r.width * dpr;
+  c.height = r.height * dpr;
+  const ctx = c.getContext("2d");
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  return ctx;
+}
 
-  let ctx = setupCanvas(canvas);
-  window.addEventListener("resize", () => {
-    ctx = setupCanvas(canvas);
-  });
+let ctx = resize(canvas);
+window.onresize = () => ctx = resize(canvas);
 
-  const $ = id => document.getElementById(id);
+let stack = computeStack(params);
+let cursor = 0;
 
-  function updateLabels(){
-    $("damper_strength_v").textContent =
-      `damper_strength = ${params.damper_strength.toFixed(2)}`;
-    $("V_amp_v").textContent =
-      `V_amp = ${params.V_amp.toFixed(0)} V`;
-  }
-
-  $("damper").onchange = e => params.damper_enabled = e.target.checked;
-  $("damper_strength").oninput = e => {
-    params.damper_strength = Number(e.target.value);
-    updateLabels();
-  };
-  $("V_amp").oninput = e => {
-    params.V_amp = Number(e.target.value);
-    updateLabels();
-  };
-
-  updateLabels();
-
-  let stack = computeStack(params);
-
-  function recompute(){
-    stack = computeStack(params);
-  }
-
-  ["damper","damper_strength","V_amp"].forEach(id=>{
-    $(id).addEventListener("input", recompute);
-    $(id).addEventListener("change", recompute);
-  });
-
-  let cursor = 0;
-  const speed = 0.35;
-
-  function animate(){
-    cursor += speed;
-    if(cursor > params.T_us) cursor = 0;
-
-    drawStack(ctx, stack, {
-      cursor_us: cursor,
-      showDelay: true,
-      refl_delay_us: params.refl_delay,
-    });
-
-    requestAnimationFrame(animate);
-  }
-
-  animate();
+function animate(){
+  cursor += 0.35;
+  if(cursor > params.T_us) cursor = 0;
+  drawStack(ctx, stack, { cursor_us: cursor });
+  requestAnimationFrame(animate);
+}
+animate();
 </script>
 </body>
 </html>
