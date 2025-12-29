@@ -1,45 +1,33 @@
-export function computeStack(p) {
-  const { dt, N } = p;
+import { DT, N, gains } from "./params.js";
 
-  const V = Array(N).fill(0);
-  const I = Array(N).fill(0);
-  const x = Array(N).fill(0);
-  const P = Array(N).fill(0);
-  const Q = Array(N).fill(0);
+export function simulate() {
+  const t = [];
+  const V = [], I = [], x = [], P = [], Q = [];
 
-  // V(t)
-  for (let i = p.drive.tOn; i < p.drive.tOff; i++) {
-    V[i] = p.drive.amp;
+  for (let i = 0; i < N; i++) {
+    const ti = i * DT;
+    t.push(ti);
+
+    // --- Drive voltage (rect pulse) ---
+    const v = (ti > 5e-6 && ti < 15e-6) ? 1.0 : 0.0;
+    V.push(v * gains.V);
+
+    // --- Current (derivative-like delay) ---
+    const i_t = (ti > 6e-6 && ti < 16e-6) ? 0.8 : 0.0;
+    I.push(i_t * gains.I);
+
+    // --- Piezo displacement ---
+    const x_t = (ti > 8e-6) ? (1 - Math.exp(-(ti - 8e-6) / 5e-6)) : 0.0;
+    x.push(x_t * gains.x);
+
+    // --- Pressure ---
+    const p_t = (ti > 12e-6) ? Math.sin((ti - 12e-6) * 2e5) : 0.0;
+    P.push(p_t * gains.P);
+
+    // --- Flow rate ---
+    const q_t = (ti > 18e-6) ? Math.max(0, p_t) : 0.0;
+    Q.push(q_t * gains.Q);
   }
 
-  // I(t) = dV/dt
-  for (let i = 1; i < N; i++) {
-    I[i] = (V[i] - V[i - 1]) / dt;
-  }
-
-  // x(t) : 2nd order
-  let xd = 0;
-  for (let i = 1; i < N; i++) {
-    const a =
-      -2 * p.mech.zeta * p.mech.wn * xd -
-      p.mech.wn * p.mech.wn * x[i - 1] +
-      V[i];
-    xd += a * dt;
-    x[i] = x[i - 1] + xd * dt;
-  }
-
-  // scale for visualization
-  for (let i = 0; i < N; i++) x[i] *= 200;
-
-  // P(t) delayed response
-  for (let i = p.fluid.delay; i < N; i++) {
-    P[i] = 0.95 * P[i - 1] + 0.05 * x[i - p.fluid.delay];
-  }
-
-  // Q(t) = dP/dt
-  for (let i = 1; i < N; i++) {
-    Q[i] = (P[i] - P[i - 1]) / dt;
-  }
-
-  return { V, I, x, P, Q };
+  return { t, V, I, x, P, Q };
 }
