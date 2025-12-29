@@ -1,13 +1,8 @@
 import { gains } from "./params.js";
 
-/*
-  Simple causal inkjet model:
-    V(t) -> Δx(t) -> P(t) -> Q(t)
-*/
-
 export function simulate() {
   const N = 600;
-  const tEnd = 30e-6; // 30 µs
+  const tEnd = 30e-6;
   const dt = tEnd / (N - 1);
 
   const t = new Array(N);
@@ -17,71 +12,42 @@ export function simulate() {
   const P = new Array(N);
   const Q = new Array(N);
 
-  /* =========================
-     Time axis
-     ========================= */
-  for (let i = 0; i < N; i++) {
-    t[i] = i * dt;
-  }
+  for (let i = 0; i < N; i++) t[i] = i * dt;
 
-  /* =========================
-     Drive voltage waveform
-     （Voltage Amplitude が直接効く）
-     ========================= */
+  /* ---- Drive voltage ---- */
   const Vamp = gains.V;
-
   for (let i = 0; i < N; i++) {
-    const ti = t[i] * 1e6; // µs
-
-    if (ti < 5) {
-      V[i] = 0;
-    } else if (ti < 10) {
-      V[i] = Vamp;
-    } else if (ti < 12) {
-      V[i] = -0.4 * Vamp;
-    } else {
-      V[i] = 0;
-    }
+    const ti = t[i] * 1e6;
+    if (ti < 5) V[i] = 0;
+    else if (ti < 10) V[i] = Vamp;
+    else if (ti < 12) V[i] = -0.4 * Vamp;
+    else V[i] = 0;
   }
 
-  /* =========================
-     Current (display only)
-     ========================= */
+  /* ---- Current (display only) ---- */
   for (let i = 1; i < N; i++) {
     I[i] = gains.I * (V[i] - V[i - 1]) / dt * 1e-6;
   }
   I[0] = 0;
 
-  /* =========================
-     Piezo displacement Δx(t)
-     ========================= */
-  const kx = gains.x;
+  /* ---- Δx(t) ---- */
   let xState = 0;
-
   for (let i = 0; i < N; i++) {
-    xState += (kx * V[i] - xState) * 0.05;
+    xState += (gains.x * V[i] - xState) * dt * 1e6;
     x[i] = xState;
   }
 
-  /* =========================
-     Cavity pressure P(t)
-     ========================= */
-  const kp = gains.P;
+  /* ---- P(t) ---- */
   let pState = 0;
-
   for (let i = 0; i < N; i++) {
-    pState += (kp * x[i] - pState) * 0.05;
+    pState += (gains.P * x[i] - pState) * dt * 1e6;
     P[i] = pState;
   }
 
-  /* =========================
-     Flow rate Q(t)
-     ========================= */
-  const kq = gains.Q;
+  /* ---- Q(t) ---- */
   let qState = 0;
-
   for (let i = 0; i < N; i++) {
-    qState += (kq * P[i] - qState) * 0.05;
+    qState += (gains.Q * P[i] - qState) * dt * 1e6;
     Q[i] = qState;
   }
 
