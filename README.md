@@ -74,7 +74,7 @@ Inkjet waveform engineering can be viewed as a
 ## 🔗 Live Demo (GitHub Pages)
 
 👉 **Interactive animation (browser-based):**  
-https://samizo-aitl.github.io/inkjet-timing/
+https://samizo-aitl.github.io/inkjet-timing/index.html
 
 - No installation required
 - Runs entirely in the browser
