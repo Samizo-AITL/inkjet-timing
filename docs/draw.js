@@ -1,64 +1,45 @@
-export function drawStack(ctx, stack, gains, cursor) {
-
-  // ★★★ 強制リセット（最重要） ★★★
-  ctx.setTransform(1, 0, 0, 1, 0, 0);
-
+export function draw(ctx, data, cursorT) {
+  const { t, V, I, x, P, Q } = data;
   const W = ctx.canvas.width;
   const H = ctx.canvas.height;
 
   ctx.clearRect(0, 0, W, H);
-  ctx.fillStyle = "black";
-  ctx.fillRect(0, 0, W, H);
+  ctx.strokeStyle = "#333";
+  ctx.lineWidth = 1;
 
-  const channels = [
-    { k: "V", y: 80,  c: "yellow", l: "V(t)" },
-    { k: "I", y: 180, c: "cyan",   l: "I(t)" },
-    { k: "x", y: 280, c: "orange", l: "Δx(t)" },
-    { k: "P", y: 380, c: "red",    l: "P(t)" },
-    { k: "Q", y: 480, c: "lime",   l: "Q(t)" },
-  ];
+  const rows = [V, I, x, P, Q];
+  const labels = ["V(t)", "I(t)", "Δx(t)", "P(t)", "Q(t)"];
+  const rowH = H / rows.length;
 
-  // grid
-  ctx.strokeStyle = "rgba(255,255,255,0.08)";
-  for (let i = 0; i <= 10; i++) {
-    const x = (i / 10) * W;
+  rows.forEach((row, r) => {
+    const y0 = r * rowH + rowH / 2;
+
+    // baseline
+    ctx.strokeStyle = "#444";
     ctx.beginPath();
-    ctx.moveTo(x, 0);
-    ctx.lineTo(x, H);
-    ctx.stroke();
-  }
-
-  channels.forEach(ch => {
-    const d = stack[ch.k];
-    const g = gains[ch.k];
-
-    // zero line
-    ctx.strokeStyle = "rgba(255,255,255,0.15)";
-    ctx.beginPath();
-    ctx.moveTo(0, ch.y);
-    ctx.lineTo(W, ch.y);
+    ctx.moveTo(0, y0);
+    ctx.lineTo(W, y0);
     ctx.stroke();
 
     // waveform
-    ctx.strokeStyle = ch.c;
-    ctx.lineWidth = 2;
+    ctx.strokeStyle = "#6cf";
     ctx.beginPath();
-    for (let i = 0; i < d.length; i++) {
-      const x = (i / (d.length - 1)) * W;
-      const y = ch.y - d[i] * g;
-      if (i === 0) ctx.moveTo(x, y);
-      else ctx.lineTo(x, y);
-    }
+    row.forEach((v, i) => {
+      const xPos = (i / row.length) * W;
+      const yPos = y0 - v * rowH * 0.4;
+      if (i === 0) ctx.moveTo(xPos, yPos);
+      else ctx.lineTo(xPos, yPos);
+    });
     ctx.stroke();
 
+    // label
     ctx.fillStyle = "#aaa";
-    ctx.fillText(ch.l, 10, ch.y - 8);
+    ctx.fillText(labels[r], 10, y0 - rowH * 0.35);
   });
 
-  // time cursor
-  const cx = (cursor / (stack.V.length - 1)) * W;
-  ctx.strokeStyle = "rgba(0,255,0,0.7)";
-  ctx.lineWidth = 2;
+  // --- Time cursor ---
+  const cx = (cursorT / t[t.length - 1]) * W;
+  ctx.strokeStyle = "#fff";
   ctx.beginPath();
   ctx.moveTo(cx, 0);
   ctx.lineTo(cx, H);
