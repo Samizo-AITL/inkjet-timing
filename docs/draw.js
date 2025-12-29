@@ -5,7 +5,7 @@ export function draw(ctx, data, cursorT) {
 
   ctx.clearRect(0, 0, W, H);
 
-  // ===== 色定義（意味固定） =====
+  // ===== 色（意味固定） =====
   const COLORS = {
     V: "#3fa9f5",   // electric
     I: "#3fa9f5",
@@ -27,7 +27,17 @@ export function draw(ctx, data, cursorT) {
 
   const rowH = H / rows.length;
 
-  // ===== 波形描画 =====
+  // ===== 時間カーソル位置 =====
+  const tMax = t[t.length - 1];
+  const cx = (cursorT / tMax) * W;
+
+  // 対応するインデックス
+  const idx = Math.min(
+    Math.floor((cursorT / tMax) * (t.length - 1)),
+    t.length - 1
+  );
+
+  // ===== 波形 =====
   rows.forEach((row, r) => {
     const y0 = r * rowH + rowH / 2;
 
@@ -54,12 +64,18 @@ export function draw(ctx, data, cursorT) {
     ctx.fillStyle = COLORS.label;
     ctx.font = "12px system-ui";
     ctx.fillText(row.label, 8, y0 - rowH * 0.35);
+
+    // ===== カーソル位置のマーカー（最重要） =====
+    const vNow = row.data[idx];
+    const yNow = y0 - vNow * rowH * 0.4;
+
+    ctx.fillStyle = COLORS[row.key];
+    ctx.beginPath();
+    ctx.arc(cx, yNow, 4, 0, Math.PI * 2);
+    ctx.fill();
   });
 
-  // ===== Time cursor（最重要） =====
-  const cx = (cursorT / t[t.length - 1]) * W;
-
-  // glow（オシロ感）
+  // ===== 時間カーソル（最前面） =====
   ctx.strokeStyle = COLORS.cursor;
   ctx.lineWidth = 2.5;
   ctx.beginPath();
