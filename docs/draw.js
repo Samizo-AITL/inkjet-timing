@@ -9,6 +9,15 @@ export function draw(ctx, data, idx) {
   const colors = ["#3fa9f5", "#3fa9f5", "#f5a623", "#f5a623", "#7ed321"];
   const labels = ["V(t)", "I(t)", "Δx(t)", "P(t)", "Q(t)"];
 
+  // ===== 固定スケール（ここが決着点）=====
+  const scales = [
+    2.0,   // Vmax [V]
+    2.0,   // Imax [mA]（表示用）
+    2.0,   // Xmax [nm]
+    2.0,   // Pmax [kPa]
+    2.0    // Qmax [nL/µs]
+  ];
+
   const rowH = H / rows.length;
   const cx   = (idx / (V.length - 1)) * W;
 
@@ -18,7 +27,7 @@ export function draw(ctx, data, idx) {
   rows.forEach((row, r) => {
     const y0 = r * rowH + rowH / 2;
 
-    /* ---- baseline ---- */
+    // baseline
     ctx.strokeStyle = "#222";
     ctx.lineWidth = 1;
     ctx.beginPath();
@@ -26,16 +35,9 @@ export function draw(ctx, data, idx) {
     ctx.lineTo(W, y0);
     ctx.stroke();
 
-    /* ===== 動的スケーリング（核心） ===== */
-    let max = 0;
-    for (let i = 0; i < row.length; i++) {
-      max = Math.max(max, Math.abs(row[i]));
-    }
-    if (max === 0) max = 1; // 0割防止
+    // ===== 固定スケール描画 =====
+    const scale = (rowH * 0.4) / scales[r];
 
-    const scale = (rowH * 0.4) / max;
-
-    /* ---- waveform ---- */
     ctx.strokeStyle = colors[r];
     ctx.lineWidth = 2;
     ctx.beginPath();
@@ -46,24 +48,22 @@ export function draw(ctx, data, idx) {
     });
     ctx.stroke();
 
-    /* ---- label ---- */
+    // label
     ctx.lineWidth = 3;
     ctx.strokeStyle = "#000";
     ctx.strokeText(labels[r], 10, y0 - rowH * 0.35);
-
     ctx.fillStyle = colors[r];
     ctx.fillText(labels[r], 10, y0 - rowH * 0.35);
 
-    /* ---- cursor point ---- */
-    const v = row[idx];
-    const cy = y0 - v * scale;
+    // cursor point
+    const cy = y0 - row[idx] * scale;
     ctx.fillStyle = colors[r];
     ctx.beginPath();
     ctx.arc(cx, cy, 4, 0, Math.PI * 2);
     ctx.fill();
   });
 
-  /* ---- time cursor ---- */
+  // time cursor
   ctx.strokeStyle = "#ffffff";
   ctx.lineWidth = 2;
   ctx.beginPath();
