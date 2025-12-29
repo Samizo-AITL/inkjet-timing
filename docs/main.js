@@ -5,13 +5,9 @@ import { drawStack } from "./draw.js";
 const canvas = document.getElementById("scope");
 const ctx = canvas.getContext("2d");
 
-// DPI対応
-const dpr = window.devicePixelRatio || 1;
-canvas.width  = 1200 * dpr;
-canvas.height = 600 * dpr;
-canvas.style.width = "1200px";
-canvas.style.height = "600px";
-ctx.scale(dpr, dpr);
+// ★ 固定サイズ（重要）
+canvas.width  = 1200;
+canvas.height = 600;
 
 const stack = computeStack(params);
 
@@ -34,4 +30,3 @@ function redraw() {
 }
 
 redraw();
-console.log("Inkjet Timing Demo READY");
