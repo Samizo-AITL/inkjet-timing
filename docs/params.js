@@ -28,7 +28,7 @@ export let gains = {
   Q: 1.0,   // Flow coefficient / nozzle conductance
 
   /* ---- Display Only ---- */
-  I: 1.0    // Current display scale
+  I: 0.1    // Current display scale
 };
 
 /* =========================
