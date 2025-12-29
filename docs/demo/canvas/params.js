@@ -1,20 +1,32 @@
 // docs/demo/canvas/params.js
 export const params = {
-  // Electrical (cause)
-  V_amp: 30,          // [V]
-  rise_time: 2.0,     // [µs]
-  fall_time: 3.0,     // [µs]
+  // ===== Time axis (qualitative) =====
+  T_us: 30.0,     // [µs] visible time window
+  N: 900,         // samples across the window
 
-  // Mechanical
-  mech_gain: 1.0,
+  // ===== Electrical drive (cause) =====
+  V_amp: 35.0,    // [V]
+  t0: 2.0,        // [µs] start
+  tr: 1.5,        // [µs] rise time
+  th: 2.0,        // [µs] hold
+  tf: 2.5,        // [µs] fall time
+  V_bias: 0.0,    // [V] (optional)
 
-  // Fluid / Acoustic
-  channel_length: 30, // normalized
-  sound_speed: 1.0,
-  wall_damping: 0.05,
+  // ===== Electrical response (capacitive-ish) =====
+  C_eff: 1.0,     // normalized (I ≈ C_eff * dV/dt)
 
-  // Acoustic damper
+  // ===== Mechanical response (piezo + structure) =====
+  mech_gain: 1.0,   // x ∝ mech_gain * V (normalized)
+  mech_tau: 0.6,    // [µs] first-order lag (structure)
+
+  // ===== Fluid / acoustic =====
+  p_gain: 1.0,      // pressure gain
+  f0: 0.22,         // [1/µs] resonance-ish (qualitative)
+  zeta: 0.18,       // damping ratio-ish (base)
+  refl_delay: 6.0,  // [µs] reflection delay (channel flight time)
+  refl_gain: 0.65,  // reflection strength (when no damper)
+
+  // ===== Acoustic damper =====
   damper_enabled: true,
-  damper_strength: 0.3
+  damper_strength: 0.70, // 0..1 (higher => stronger absorption)
 };
-
