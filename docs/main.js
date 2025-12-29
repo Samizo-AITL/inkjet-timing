@@ -1,32 +1,29 @@
-import { params } from "./params.js";
-import { computeStack } from "./model.js";
-import { drawStack } from "./draw.js";
+import { TIME_VIEW, DT, setGain } from "./params.js";
+import { simulate } from "./model.js";
+import { draw } from "./draw.js";
 
-const canvas = document.getElementById("scope");
+const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
 
-// ★ 固定サイズ（重要）
-canvas.width  = 1200;
-canvas.height = 600;
+const slider = document.getElementById("time");
+slider.max = TIME_VIEW;
+slider.step = DT;
 
-const stack = computeStack(params);
+let data = simulate();
 
-const gains = { V:1, I:1, x:1, P:1, Q:1 };
-
-const cursor = document.getElementById("cursor");
-cursor.max = stack.V.length - 1;
-cursor.value = params.drive.tOn + 20;
-
-["V","I","x","P","Q"].forEach(k => {
-  document.getElementById("g"+k).oninput = e => {
-    gains[k] = +e.target.value;
-    redraw();
-  };
-});
-cursor.oninput = redraw;
-
-function redraw() {
-  drawStack(ctx, stack, gains, +cursor.value);
+function update() {
+  const t = parseFloat(slider.value);
+  draw(ctx, data, t);
 }
 
-redraw();
+slider.addEventListener("input", update);
+
+document.querySelectorAll("input[data-gain]").forEach(sl => {
+  sl.addEventListener("input", e => {
+    setGain(e.target.dataset.gain, parseFloat(e.target.value));
+    data = simulate();
+    update();
+  });
+});
+
+update();
