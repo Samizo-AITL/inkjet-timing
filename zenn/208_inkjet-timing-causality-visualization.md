@@ -1,5 +1,5 @@
 ---
-title: "【IJ】inkjet-timing：圧電インクジェットにおける時間因果の可視化"
+title: "【Inkjet】inkjet-timing：圧電インクジェットにおける時間因果の可視化"
 emoji: "💧"
 type: "tech"
 topics: ["inkjet", "制御工学", "物理モデリング", "可視化", "aitl"]
