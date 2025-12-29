@@ -15,11 +15,24 @@ export function draw(ctx, data, idx) {
   ctx.font = "bold 13px system-ui, sans-serif";
   ctx.textBaseline = "middle";
 
+  const Y_MARGIN = 0.15;   // ← 15% マージン
+  const AMP_RATIO = 0.5;  // 行高さに対する最大振幅
+
   /* ===== 各波形 ===== */
   rows.forEach((row, r) => {
     const y0 = r * rowH + rowH / 2;
 
-    /* 基準線 */
+    /* --- min / max 計算 --- */
+    const vMinRaw = Math.min(...row);
+    const vMaxRaw = Math.max(...row);
+    const vSpan   = vMaxRaw - vMinRaw || 1;
+
+    const vMin = vMinRaw - vSpan * Y_MARGIN;
+    const vMax = vMaxRaw + vSpan * Y_MARGIN;
+
+    const scale = (rowH * AMP_RATIO) / (vMax - vMin);
+
+    /* --- 基準線 --- */
     ctx.strokeStyle = "#222";
     ctx.lineWidth = 1;
     ctx.beginPath();
@@ -27,18 +40,20 @@ export function draw(ctx, data, idx) {
     ctx.lineTo(W, y0);
     ctx.stroke();
 
-    /* 波形 */
+    /* --- 波形 --- */
     ctx.strokeStyle = colors[r];
     ctx.lineWidth = 2;
     ctx.beginPath();
+
     row.forEach((v, i) => {
       const xPos = (i / (row.length - 1)) * W;
-      const yPos = y0 - v * rowH * 0.4;
+      const yPos = y0 - (v - (vMin + vMax) / 2) * scale;
       i === 0 ? ctx.moveTo(xPos, yPos) : ctx.lineTo(xPos, yPos);
     });
+
     ctx.stroke();
 
-    /* ==== ラベル（縁取り付き・見やすい） ==== */
+    /* --- ラベル --- */
     ctx.lineWidth = 3;
     ctx.strokeStyle = "#000";
     ctx.strokeText(labels[r], 10, y0 - rowH * 0.35);
@@ -46,9 +61,9 @@ export function draw(ctx, data, idx) {
     ctx.fillStyle = colors[r];
     ctx.fillText(labels[r], 10, y0 - rowH * 0.35);
 
-    /* ==== カーソル交点 ==== */
+    /* --- カーソル交点 --- */
     const v = row[idx];
-    const cy = y0 - v * rowH * 0.4;
+    const cy = y0 - (v - (vMin + vMax) / 2) * scale;
 
     ctx.fillStyle = colors[r];
     ctx.beginPath();
