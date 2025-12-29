@@ -26,8 +26,9 @@ export function simulate() {
 
   /* =========================
      Drive voltage waveform
+     （※ ここは一切変更していない）
      ========================= */
-  const Vamp = gains.V; // ← Voltage Amplitude [V]
+  const Vamp = 1.0; // ← 波形形状用（固定）
 
   for (let i = 0; i < N; i++) {
     const ti = t[i] * 1e6; // µs
@@ -58,8 +59,8 @@ export function simulate() {
   let xState = 0;
 
   for (let i = 0; i < N; i++) {
-    // simple first-order response
-    xState += (kx * V[i] - xState) * 0.05;
+    // ★ Voltage Amplitude を「駆動強度」としてここで掛ける
+    xState += (kx * gains.V * V[i] - xState) * 0.05;
     x[i] = xState;
   }
 
