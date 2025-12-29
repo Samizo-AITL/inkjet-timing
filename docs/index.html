@@ -3,12 +3,20 @@
 <head>
   <meta charset="UTF-8">
   <title>Inkjet Timing</title>
+  <style>
+    body {
+      margin: 0;
+      background: black;
+      color: white;
+    }
+    canvas {
+      display: block;
+    }
+  </style>
 </head>
 <body>
-  <h1>BOOT OK</h1>
+  <canvas id="scope" width="1200" height="600"></canvas>
 
-  <script type="module">
-    console.log("INLINE MODULE OK");
-  </script>
+  <script type="module" src="./main.js"></script>
 </body>
 </html>
