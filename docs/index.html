@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html lang="ja">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Inkjet Full-stack Timing</title>
+  <title>Inkjet Full-Stack Timing</title>
   <style>
     body {
       margin: 40px;
@@ -27,38 +27,41 @@
 </head>
 <body>
 
-<h1>Inkjet Full-stack Timing</h1>
+<h1>Inkjet Full-Stack Timing</h1>
 
 <p>
-本ページは、<strong>ピエゾインクジェットにおける時間因果構造</strong>を  
-単一時間軸上で可視化するための <strong>設計・教育用デモ</strong>です。
+This page presents a <strong>design and educational demonstration</strong> for visualizing  
+the <strong>time-domain causal structure</strong> of a piezoelectric inkjet system  
+along a single, aligned time axis.
 </p>
 
-<h2>目的</h2>
+<h2>Objective</h2>
 
-<p>以下の因果連鎖を <strong>オシロスコープ的に理解</strong>すること：</p>
+<p>
+To understand the following causal chain in an <strong>oscilloscope-like manner</strong>:
+</p>
 
 <pre><code>
 V(t) → I(t) → Δx(t) → P(t) → Q(t)
 </code></pre>
 
 <ul>
-  <li>フィードフォワード駆動</li>
-  <li>μs オーダーの因果遅延</li>
-  <li>電気 → 機械 → 流体の位相関係</li>
+  <li>Feedforward actuation</li>
+  <li>Microsecond-order causal delays</li>
+  <li>Phase relationships across electrical, mechanical, and fluid domains</li>
 </ul>
 
-<h2>デモ</h2>
+<h2>Demo</h2>
 
 <p>
-👉 <a href="demo.html">Timing Visualization Demo を開く</a>
+👉 <a href="demo.html">Open the Timing Visualization Demo</a>
 </p>
 
 <hr>
 
 <p style="opacity:0.6">
-Note: この可視化は CFD / FEM ではなく、  
-因果構造と位相関係の理解を目的としています。
+Note: This visualization is not a CFD or FEM simulation.  
+Its purpose is to clarify causal structure and phase relationships.
 </p>
 
 </body>
