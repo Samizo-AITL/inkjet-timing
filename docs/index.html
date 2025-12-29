@@ -2,10 +2,64 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <meta http-equiv="refresh" content="0; url=index.md">
-  <title>Inkjet Timing</title>
+  <title>Inkjet Full-stack Timing</title>
+  <style>
+    body {
+      margin: 40px;
+      font-family: system-ui, sans-serif;
+      background: #111;
+      color: #eee;
+      line-height: 1.6;
+    }
+    h1, h2 { color: #9cf; }
+    a { color: #6cf; }
+    code {
+      background: #222;
+      padding: 2px 4px;
+      border-radius: 4px;
+    }
+    pre {
+      background: #222;
+      padding: 10px;
+      overflow-x: auto;
+    }
+  </style>
 </head>
 <body>
-  <p>Redirecting to documentation...</p>
+
+<h1>Inkjet Full-stack Timing</h1>
+
+<p>
+本ページは、<strong>ピエゾインクジェットにおける時間因果構造</strong>を  
+単一時間軸上で可視化するための <strong>設計・教育用デモ</strong>です。
+</p>
+
+<h2>目的</h2>
+
+<p>以下の因果連鎖を <strong>オシロスコープ的に理解</strong>すること：</p>
+
+<pre><code>
+V(t) → I(t) → Δx(t) → P(t) → Q(t)
+</code></pre>
+
+<ul>
+  <li>フィードフォワード駆動</li>
+  <li>μs オーダーの因果遅延</li>
+  <li>電気 → 機械 → 流体の位相関係</li>
+</ul>
+
+<h2>デモ</h2>
+
+<p>
+👉 <a href="demo.html">Timing Visualization Demo を開く</a>
+</p>
+
+<hr>
+
+<p style="opacity:0.6">
+Note: この可視化は CFD / FEM ではなく、  
+因果構造と位相関係の理解を目的としています。
+</p>
+
 </body>
 </html>
