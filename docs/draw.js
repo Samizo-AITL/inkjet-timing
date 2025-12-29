@@ -15,24 +15,34 @@ export function draw(ctx, data, idx) {
   ctx.font = "bold 13px system-ui, sans-serif";
   ctx.textBaseline = "middle";
 
-  const Y_MARGIN = 0.15;   // ← 15% マージン
-  const AMP_RATIO = 0.5;  // 行高さに対する最大振幅
+  const Y_MARGIN = 0.15;
+  const AMP_RATIO = 0.5;
 
-  /* ===== 各波形 ===== */
+  /* =========================
+     Draw each waveform
+     ========================= */
   rows.forEach((row, r) => {
     const y0 = r * rowH + rowH / 2;
 
-    /* --- min / max 計算 --- */
-    const vMinRaw = Math.min(...row);
-    const vMaxRaw = Math.max(...row);
-    const vSpan   = vMaxRaw - vMinRaw || 1;
+    let vMin, vMax;
 
-    const vMin = vMinRaw - vSpan * Y_MARGIN;
-    const vMax = vMaxRaw + vSpan * Y_MARGIN;
+    if (r === 0) {
+      /* ===== V(t)：絶対スケール ===== */
+      vMin = -2.0;  // [V] 表示下限
+      vMax =  2.0;  // [V] 表示上限
+    } else {
+      /* ===== Others：自動スケール ===== */
+      const vMinRaw = Math.min(...row);
+      const vMaxRaw = Math.max(...row);
+      const span = vMaxRaw - vMinRaw || 1;
+
+      vMin = vMinRaw - span * Y_MARGIN;
+      vMax = vMaxRaw + span * Y_MARGIN;
+    }
 
     const scale = (rowH * AMP_RATIO) / (vMax - vMin);
 
-    /* --- 基準線 --- */
+    /* ----- baseline ----- */
     ctx.strokeStyle = "#222";
     ctx.lineWidth = 1;
     ctx.beginPath();
@@ -40,7 +50,7 @@ export function draw(ctx, data, idx) {
     ctx.lineTo(W, y0);
     ctx.stroke();
 
-    /* --- 波形 --- */
+    /* ----- waveform ----- */
     ctx.strokeStyle = colors[r];
     ctx.lineWidth = 2;
     ctx.beginPath();
@@ -53,7 +63,7 @@ export function draw(ctx, data, idx) {
 
     ctx.stroke();
 
-    /* --- ラベル --- */
+    /* ----- label ----- */
     ctx.lineWidth = 3;
     ctx.strokeStyle = "#000";
     ctx.strokeText(labels[r], 10, y0 - rowH * 0.35);
@@ -61,7 +71,7 @@ export function draw(ctx, data, idx) {
     ctx.fillStyle = colors[r];
     ctx.fillText(labels[r], 10, y0 - rowH * 0.35);
 
-    /* --- カーソル交点 --- */
+    /* ----- cursor marker ----- */
     const v = row[idx];
     const cy = y0 - (v - (vMin + vMax) / 2) * scale;
 
@@ -71,7 +81,9 @@ export function draw(ctx, data, idx) {
     ctx.fill();
   });
 
-  /* ===== 時間カーソル ===== */
+  /* =========================
+     Time cursor
+     ========================= */
   ctx.strokeStyle = "#ffffff";
   ctx.lineWidth = 2;
   ctx.beginPath();
