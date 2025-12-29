@@ -1,37 +1,40 @@
-import { TIME_VIEW, DT, setGain } from "./params.js";
+import { setGain } from "./params.js";
 import { simulate } from "./model.js";
 import { draw } from "./draw.js";
 
-window.addEventListener("DOMContentLoaded",()=>{
-  const canvas=document.getElementById("canvas");
-  const ctx=canvas.getContext("2d");
+window.addEventListener("DOMContentLoaded", () => {
+  const canvas = document.getElementById("canvas");
+  const ctx = canvas.getContext("2d");
 
-  function resize(){
-    canvas.width=window.innerWidth-260;
-    canvas.height=window.innerHeight;
+  function resize() {
+    canvas.width  = window.innerWidth - 260;
+    canvas.height = window.innerHeight;
   }
   resize();
-  window.addEventListener("resize",resize);
+  window.addEventListener("resize", resize);
 
-  const slider=document.getElementById("time");
-  slider.min=0;
-  slider.max=TIME_VIEW;
-  slider.step=DT;
-  slider.value=0;
+  let data = simulate();
+  const N = data.t.length;
 
-  let data=simulate();
+  // ★ スライダーは index
+  const slider = document.getElementById("time");
+  slider.min = 0;
+  slider.max = N - 1;
+  slider.step = 1;
+  slider.value = 0;
 
-  function update(){
-    draw(ctx,data,parseFloat(slider.value));
+  function update() {
+    const idx = parseInt(slider.value, 10);
+    draw(ctx, data, idx);
   }
+
   update();
+  slider.addEventListener("input", update);
 
-  slider.addEventListener("input",update);
-
-  document.querySelectorAll("input[data-gain]").forEach(el=>{
-    el.addEventListener("input",e=>{
-      setGain(e.target.dataset.gain,parseFloat(e.target.value));
-      data=simulate();
+  document.querySelectorAll("input[data-gain]").forEach(el => {
+    el.addEventListener("input", e => {
+      setGain(e.target.dataset.gain, parseFloat(e.target.value));
+      data = simulate();
       update();
     });
   });
