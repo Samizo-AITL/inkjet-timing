@@ -1,0 +1,76 @@
+# inkjet-timing
+
+Time-domain causality visualization of a piezoelectric inkjet system.
+
+This repository provides a **stacked, time-aligned visualization**
+showing how electrical, mechanical, and fluidic domains are causally
+connected during inkjet droplet ejection.
+
+---
+
+## What this shows
+
+A single time axis is shared across the following signals:
+
+- Drive voltage $V(t)$  
+- Current response $I(t)$  
+- Mechanical displacement $\Delta x(t)$  
+- Channel pressure $P(t)$  
+- Ink flow response ($Q_{out}$ / $Q_{in}$)
+
+Each waveform belongs to a different physical domain, but all are
+**causally linked in time**.
+
+---
+
+## Why this is not PID control
+
+Inkjet actuation is fundamentally:
+
+- open-loop
+- feedforward-driven
+- completed within microseconds
+
+There is no opportunity for closed-loop feedback during droplet
+formation.  
+Stability is achieved through **waveform design, mechanical damping,
+and fluidic architecture**, not gain tuning.
+
+---
+
+## Design intent
+
+- Qualitative, not CFD-based
+- Causality-focused, not parameter-accurate
+- Represents a well-damped, properly designed operating condition
+
+This visualization is intended for **architectural understanding and
+physical intuition**, not numerical prediction.
+
+---
+
+## Live demo (GitHub Pages)
+
+👉 Open the interactive timing chart:
+
+https://<your-github-id>.github.io/inkjet-timing/
+
+---
+
+## Position within AITL
+
+This project complements PID-based control examples by addressing
+systems where:
+
+- behavior is determined by architecture and timing
+- stability is embedded in physical design
+- cross-domain causality must be understood at a glance
+
+Inkjet waveform engineering can be viewed as a
+**physics-constrained feedforward control problem**.
+
+---
+
+## License
+
+MIT (or specify if different)
