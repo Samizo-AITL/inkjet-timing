@@ -25,19 +25,24 @@
     }
     label { display: block; margin-bottom: 6px; }
     input[type="range"] { width: 100%; }
+    a { color:#6cf; text-decoration:none; }
   </style>
 </head>
 <body>
 
-<canvas id="scope" width="1200" height="600"></canvas>
+<a href="./index.html" style="position:fixed;left:10px;top:10px;z-index:10;">
+  ← 説明に戻る
+</a>
+
+<canvas id="scope"></canvas>
 
 <div id="panel">
   <label>Time cursor
-    <input type="range" id="cursor" min="0" max="1999" value="400">
+    <input type="range" id="cursor" min="0">
   </label>
   <hr>
   <label>V gain <input type="range" id="gV" min="0.2" max="5" step="0.1" value="1"></label>
-  <label>I gain <input type="range" id="gI" min="0.2" max="5" step="0.1" value="0.3"></label>
+  <label>I gain <input type="range" id="gI" min="0.2" max="5" step="0.1" value="0.5"></label>
   <label>x gain <input type="range" id="gx" min="0.2" max="5" step="0.1" value="2"></label>
   <label>P gain <input type="range" id="gP" min="0.2" max="5" step="0.1" value="3"></label>
   <label>Q gain <input type="range" id="gQ" min="0.2" max="5" step="0.1" value="0.5"></label>
@@ -46,4 +51,3 @@
 <script type="module" src="./main.js"></script>
 </body>
 </html>
-
