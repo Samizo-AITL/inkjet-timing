@@ -71,6 +71,17 @@ Inkjet waveform engineering can be viewed as a
 
 ---
 
+## 🔗 Live Demo (GitHub Pages)
+
+👉 **Interactive animation (browser-based):**  
+https://samizo-aitl.github.io/inkjet-timing/
+
+- No installation required
+- Runs entirely in the browser
+- Parameters (e.g. acoustic damper ON/OFF) can be adjusted interactively
+
+---
+
 ## License
 
 MIT (or specify if different)
