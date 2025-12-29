@@ -1,5 +1,5 @@
 // draw.js — Fixed waveform + time cursor
-// Channel-weighted layout + per-channel vertical scale (oscilloscope style)
+// FINAL: Per-channel auto vertical scaling (true oscilloscope behavior)
 
 export function drawStack(ctx, stack, ui){
   const { canvas } = ctx;
@@ -17,15 +17,14 @@ export function drawStack(ctx, stack, ui){
 
   /* ===== channels ===== */
   const rows = [
-    { key:"V", label:"V(t)  [drive]",      color:"#00ff88", weight:1.0, scale:0.30 },
-    { key:"I", label:"I(t)  [current]",    color:"#ffd400", weight:1.0, scale:0.30 },
-    { key:"x", label:"Δx(t) [mechanical]", color:"#ff8800", weight:1.0, scale:0.30 },
-    { key:"P", label:"P(t)  [pressure]",   color:"#ff4d4d", weight:1.4, scale:0.22 },
-    { key:"Q", label:"Q(t)  [ink flow]",   color:"#4da6ff", weight:1.4, scale:0.22 },
+    { key:"V", label:"V(t)  [drive]",      color:"#00ff88", weight:1.0 },
+    { key:"I", label:"I(t)  [current]",    color:"#ffd400", weight:1.0 },
+    { key:"x", label:"Δx(t) [mechanical]", color:"#ff8800", weight:1.0 },
+    { key:"P", label:"P(t)  [pressure]",   color:"#ff4d4d", weight:1.4 },
+    { key:"Q", label:"Q(t)  [ink flow]",   color:"#4da6ff", weight:1.4 },
   ];
 
-  const weights = rows.map(r => r.weight);
-  const sumW = weights.reduce((a,b)=>a+b,0);
+  const sumW = rows.reduce((s,r)=>s+r.weight,0);
 
   const t = stack.t;
   const tEnd = t[t.length - 1];
@@ -45,10 +44,10 @@ export function drawStack(ctx, stack, ui){
     ctx.stroke();
   }
 
-  /* ===== draw rows ===== */
   ctx.font = "12px ui-monospace";
   let yCursor = padT;
 
+  /* ===== draw each channel ===== */
   for(const row of rows){
     const rowH = plotH * row.weight / sumW;
     const yMid = yCursor + rowH / 2;
@@ -71,14 +70,22 @@ export function drawStack(ctx, stack, ui){
     ctx.fillStyle = "#aaa";
     ctx.fillText(row.label, 10, yCursor + 14);
 
+    // ---- AUTO SCALE (core fix) ----
+    let maxAbs = 1e-9;
+    const data = stack[row.key];
+    for(let i=0;i<data.length;i++){
+      const a = Math.abs(data[i]);
+      if(a > maxAbs) maxAbs = a;
+    }
+    const scale = (rowH * 0.45) / maxAbs; // always fit
+
     // waveform
     ctx.strokeStyle = row.color;
     ctx.lineWidth = 2;
     ctx.beginPath();
-
     for(let i=0;i<t.length;i++){
       const x = padL + plotW * (t[i] / tEnd);
-      const y = yMid - stack[row.key][i] * rowH * row.scale;
+      const y = yMid - data[i] * scale;
       if(i === 0) ctx.moveTo(x, y);
       else ctx.lineTo(x, y);
     }
