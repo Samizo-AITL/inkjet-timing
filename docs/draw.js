@@ -1,5 +1,5 @@
-export function draw(ctx, data, cursorT) {
-  const { t, V, I, x, P, Q } = data;
+export function draw(ctx, data, idx) {
+  const { V, I, x, P, Q } = data;
   const W = ctx.canvas.width;
   const H = ctx.canvas.height;
 
@@ -25,25 +25,13 @@ export function draw(ctx, data, cursorT) {
   ];
 
   const rowH = H / rows.length;
+  const cx = (idx / (V.length - 1)) * W;
 
-  /* ===== ★ 時間カーソルは index で決める ===== */
-  const idx = Math.max(
-    0,
-    Math.min(
-      Math.round((cursorT / t[t.length - 1]) * (t.length - 1)),
-      t.length - 1
-    )
-  );
-
-  const cx = (idx / (t.length - 1)) * W;
-
-  // ===== 波形 =====
   rows.forEach((row, r) => {
     const y0 = r * rowH + rowH / 2;
 
     // baseline
     ctx.strokeStyle = COLORS.grid;
-    ctx.lineWidth = 1;
     ctx.beginPath();
     ctx.moveTo(0, y0);
     ctx.lineTo(W, y0);
@@ -62,10 +50,9 @@ export function draw(ctx, data, cursorT) {
 
     // label
     ctx.fillStyle = COLORS.label;
-    ctx.font = "12px system-ui";
     ctx.fillText(row.label, 8, y0 - rowH * 0.35);
 
-    // ★ 現在時刻のマーカー
+    // ★ index マーカー
     const vNow = row.data[idx];
     const yNow = y0 - vNow * rowH * 0.4;
     ctx.fillStyle = COLORS[row.key];
@@ -74,7 +61,7 @@ export function draw(ctx, data, cursorT) {
     ctx.fill();
   });
 
-  // ===== ★ 時間カーソル（白線） =====
+  // ★ 白線 = index カーソル
   ctx.strokeStyle = COLORS.cursor;
   ctx.lineWidth = 2.5;
   ctx.beginPath();
