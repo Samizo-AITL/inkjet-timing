@@ -1,5 +1,5 @@
-// draw.js — Fixed waveform + time cursor (FULL)
-// Row-weighted layout so the bottom channel (Q) never gets clipped.
+// draw.js — Fixed waveform + time cursor
+// Channel-weighted layout + per-channel vertical scale (oscilloscope style)
 
 export function drawStack(ctx, stack, ui){
   const { canvas } = ctx;
@@ -9,19 +9,19 @@ export function drawStack(ctx, stack, ui){
   /* ===== layout ===== */
   const padL = 70;
   const padR = 20;
-  const padT = 10;   // tightened
-  const padB = 10;   // tightened
+  const padT = 10;
+  const padB = 10;
 
   const plotW = W - padL - padR;
   const plotH = H - padT - padB;
 
-  /* ===== channels (row weights) ===== */
+  /* ===== channels ===== */
   const rows = [
-    { key:"V", label:"V(t)  [drive]",      color:"#00ff88", weight:1.0 },
-    { key:"I", label:"I(t)  [current]",    color:"#ffd400", weight:1.0 },
-    { key:"x", label:"Δx(t) [mechanical]", color:"#ff8800", weight:1.0 },
-    { key:"P", label:"P(t)  [pressure]",   color:"#ff4d4d", weight:1.0 },
-    { key:"Q", label:"Q(t)  [ink flow]",   color:"#4da6ff", weight:1.3 }, // ← 下段を広く
+    { key:"V", label:"V(t)  [drive]",      color:"#00ff88", weight:1.0, scale:0.30 },
+    { key:"I", label:"I(t)  [current]",    color:"#ffd400", weight:1.0, scale:0.30 },
+    { key:"x", label:"Δx(t) [mechanical]", color:"#ff8800", weight:1.0, scale:0.30 },
+    { key:"P", label:"P(t)  [pressure]",   color:"#ff4d4d", weight:1.4, scale:0.22 },
+    { key:"Q", label:"Q(t)  [ink flow]",   color:"#4da6ff", weight:1.4, scale:0.22 },
   ];
 
   const weights = rows.map(r => r.weight);
@@ -34,7 +34,7 @@ export function drawStack(ctx, stack, ui){
   ctx.fillStyle = "#000";
   ctx.fillRect(0, 0, W, H);
 
-  /* ===== grid (vertical time grid) ===== */
+  /* ===== vertical grid ===== */
   ctx.lineWidth = 1;
   ctx.strokeStyle = "#111";
   for(let i=0;i<=10;i++){
@@ -45,41 +45,40 @@ export function drawStack(ctx, stack, ui){
     ctx.stroke();
   }
 
-  /* ===== rows ===== */
+  /* ===== draw rows ===== */
   ctx.font = "12px ui-monospace";
   let yCursor = padT;
 
-  for(let r=0;r<rows.length;r++){
-    const row = rows[r];
+  for(const row of rows){
     const rowH = plotH * row.weight / sumW;
     const yMid = yCursor + rowH / 2;
 
-    /* horizontal grid / separator */
+    // separator
     ctx.strokeStyle = "#111";
     ctx.beginPath();
     ctx.moveTo(padL, yCursor);
     ctx.lineTo(padL + plotW, yCursor);
     ctx.stroke();
 
-    /* zero line */
+    // zero line
     ctx.strokeStyle = "#222";
     ctx.beginPath();
     ctx.moveTo(padL, yMid);
     ctx.lineTo(padL + plotW, yMid);
     ctx.stroke();
 
-    /* label */
+    // label
     ctx.fillStyle = "#aaa";
     ctx.fillText(row.label, 10, yCursor + 14);
 
-    /* waveform */
+    // waveform
     ctx.strokeStyle = row.color;
     ctx.lineWidth = 2;
     ctx.beginPath();
 
     for(let i=0;i<t.length;i++){
       const x = padL + plotW * (t[i] / tEnd);
-      const y = yMid - stack[row.key][i] * rowH * 0.35; // ← 振幅抑制
+      const y = yMid - stack[row.key][i] * rowH * row.scale;
       if(i === 0) ctx.moveTo(x, y);
       else ctx.lineTo(x, y);
     }
@@ -88,7 +87,7 @@ export function drawStack(ctx, stack, ui){
     yCursor += rowH;
   }
 
-  /* bottom border */
+  // bottom border
   ctx.strokeStyle = "#111";
   ctx.beginPath();
   ctx.moveTo(padL, padT + plotH);
