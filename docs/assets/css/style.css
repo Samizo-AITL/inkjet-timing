@@ -1,10 +1,9 @@
-<style>
 html, body {
   margin: 0;
   height: 100%;
-  background: #000;      /* オシロ黒 */
-  color: #ccc;
-  font-family: system-ui, sans-serif;
+  background: #000;      /* Oscilloscope black */
+  color: #e0e0e0;
+  font-family: system-ui, -apple-system, Segoe UI, sans-serif;
 }
 
 #wrap {
@@ -12,28 +11,49 @@ html, body {
   height: 100vh;
 }
 
-/* 左：波形 */
+/* =========================
+   Left: Waveform area
+========================= */
 canvas {
   flex: 1;
   background: #000;
   display: block;
 }
 
-/* 右：操作 */
+/* =========================
+   Right: Control panel
+========================= */
 #panel {
   width: 260px;
-  padding: 10px;
+  padding: 12px;
   background: #0b0b0b;
   border-left: 1px solid #222;
 }
 
+/* =========================
+   Labels (critical fix)
+========================= */
 label {
   display: block;
-  font-size: 12px;
-  margin-bottom: 10px;
+  font-size: 13px;          /* ← 少し大きく */
+  font-weight: 600;         /* ← 太さUP */
+  margin-bottom: 12px;
+  color: #f0f0f0;           /* ← 薄さ解消 */
+  letter-spacing: 0.3px;
+  text-shadow: 0 0 2px #000;/* ← 黒背景で沈まない */
 }
 
+/* 数値表示用（t=, V(t)= 等） */
+.value {
+  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+  font-size: 12px;
+  color: #9fd3ff;
+}
+
+/* =========================
+   Sliders
+========================= */
 input[type="range"] {
   width: 100%;
+  margin-top: 4px;
 }
-</style>
