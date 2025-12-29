@@ -2,20 +2,36 @@ import { params } from "./params.js";
 import { computeStack } from "./model.js";
 import { drawStack } from "./draw.js";
 
-console.log("MAIN BOOT OK");
-
 const canvas = document.getElementById("scope");
 const ctx = canvas.getContext("2d");
 
-// 仮テスト（まず塗る）
-ctx.fillStyle = "black";
-ctx.fillRect(0, 0, canvas.width, canvas.height);
-ctx.strokeStyle = "lime";
-ctx.beginPath();
-ctx.moveTo(0, canvas.height / 2);
-ctx.lineTo(canvas.width, canvas.height / 2);
-ctx.stroke();
+const stack = computeStack(params);
 
-// 本来の処理
-const data = computeStack(params);
-drawStack(ctx, data);
+const gains = {
+  V: 1,
+  I: 1,
+  x: 1,
+  P: 1,
+  Q: 1,
+};
+
+function bind(id, key) {
+  const el = document.getElementById(id);
+  el.oninput = () => {
+    gains[key] = parseFloat(el.value);
+    redraw();
+  };
+}
+
+bind("gain-v", "V");
+bind("gain-i", "I");
+bind("gain-x", "x");
+bind("gain-p", "P");
+bind("gain-q", "Q");
+
+function redraw() {
+  drawStack(ctx, stack, gains);
+}
+
+redraw();
+console.log("FULL STACK BOOT OK");
