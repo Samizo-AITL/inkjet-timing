@@ -6,16 +6,46 @@
   <style>
     body {
       margin: 40px;
-      font-family: system-ui, sans-serif;
+      font-family: system-ui, -apple-system, Segoe UI, sans-serif;
       background: #111;
       color: #eee;
-      line-height: 1.6;
+      line-height: 1.7;
     }
-    h1, h2 { color: #9cf; }
-    a { color: #6cf; }
+    h1, h2, h3 {
+      color: #9cf;
+      margin-top: 1.6em;
+    }
+    a {
+      color: #6cf;
+      text-decoration: none;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
     pre {
       background: #222;
-      padding: 10px;
+      padding: 12px;
+      border-left: 4px solid #6cf;
+      overflow-x: auto;
+    }
+    ul {
+      margin-left: 1.2em;
+    }
+    .note {
+      opacity: 0.75;
+      font-size: 0.9em;
+    }
+    .btn {
+      display: inline-block;
+      margin-top: 10px;
+      padding: 10px 16px;
+      background: #1e88e5;
+      color: #fff;
+      border-radius: 6px;
+      font-weight: 600;
+    }
+    .btn:hover {
+      background: #42a5f5;
     }
   </style>
 </head>
@@ -24,15 +54,93 @@
 <h1>Inkjet Full-Stack Timing</h1>
 
 <p>
-Time-domain visualization of the causal chain in a piezoelectric inkjet system.
+This page provides a <strong>time-domain visualization</strong> of the causal chain
+inside a <strong>piezoelectric inkjet system</strong>.
+</p>
+
+<p>
+The goal is to make the electrical, mechanical, and fluidic processes
+<strong>visually traceable on a single time axis</strong>,
+similar to reading an oscilloscope or logic analyzer.
+</p>
+
+<h2>Causal Chain</h2>
+
+<p>
+The inkjet actuation process is modeled as the following sequence:
 </p>
 
 <pre>
 V(t) → I(t) → Δx(t) → P(t) → Q(t)
 </pre>
 
+<ul>
+  <li><strong>V(t)</strong> : Drive voltage applied to the piezo actuator</li>
+  <li><strong>I(t)</strong> : Resulting drive current</li>
+  <li><strong>Δx(t)</strong> : Mechanical displacement of the piezo element</li>
+  <li><strong>P(t)</strong> : Pressure generated inside the ink chamber</li>
+  <li><strong>Q(t)</strong> : Ink flow rate through the nozzle</li>
+</ul>
+
+<h2>What This Demo Is (and Is Not)</h2>
+
+<ul>
+  <li>✔ A <strong>causal / timing visualization tool</strong></li>
+  <li>✔ Suitable for <strong>education, design discussion, and review</strong></li>
+  <li>✔ Focused on <strong>phase relationships and delays</strong></li>
+  <li>✘ Not a CFD or FEM simulator</li>
+  <li>✘ Not a quantitatively accurate physical model</li>
+</ul>
+
+<p class="note">
+The waveforms are simplified and normalized to emphasize
+<strong>timing, causality, and relative phase</strong>.
+</p>
+
+<h2>How to Use the Visualization</h2>
+
+<h3>1. Time Cursor</h3>
+<ul>
+  <li>Use the <strong>Time Cursor</strong> slider to move the vertical cursor</li>
+  <li>The white vertical line shows the selected time</li>
+  <li>Dots on each waveform indicate the value at that time</li>
+  <li>Numerical values are shown in the right panel</li>
+</ul>
+
+<h3>2. Gain Sliders</h3>
+<ul>
+  <li><strong>Voltage Gain</strong> : scales V(t)</li>
+  <li><strong>Current Gain</strong> : scales I(t)</li>
+  <li><strong>Displacement Gain</strong> : scales Δx(t)</li>
+  <li><strong>Pressure Gain</strong> : scales P(t)</li>
+  <li><strong>Flow Rate Gain</strong> : scales Q(t)</li>
+</ul>
+
 <p>
-👉 <a href="demo.html">Open Timing Visualization Demo</a>
+These controls allow you to observe how amplification in one domain
+affects downstream responses.
+</p>
+
+<h3>3. Reading the Screen Like an Oscilloscope</h3>
+<ul>
+  <li>Top → bottom corresponds to <strong>electrical → mechanical → fluid</strong></li>
+  <li>Horizontal alignment indicates <strong>causal timing</strong></li>
+  <li>Delays and phase shifts are visually explicit</li>
+</ul>
+
+<h2>Open the Demo</h2>
+
+<p>
+Click below to launch the interactive visualization:
+</p>
+
+<a class="btn" href="demo.html">Open Timing Visualization Demo</a>
+
+<hr>
+
+<p class="note">
+This project is intended as a conceptual and educational tool
+for understanding inkjet actuation dynamics in the time domain.
 </p>
 
 </body>
