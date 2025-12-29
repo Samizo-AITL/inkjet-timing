@@ -33,6 +33,20 @@ window.addEventListener("DOMContentLoaded", () => {
   slider.value = Math.floor(data.t.length * 0.35);
 
   /* =========================
+     RUN control
+     ========================= */
+  const runBtn = document.getElementById("run"); // ← ボタンID
+  let isRunning = false;
+
+  // 再生速度（index / frame）
+  let playSpeed = 1;
+
+  runBtn.addEventListener("click", () => {
+    isRunning = !isRunning;
+    runBtn.textContent = isRunning ? "STOP" : "RUN";
+  });
+
+  /* =========================
      Update display
      ========================= */
   function update() {
@@ -62,6 +76,24 @@ window.addEventListener("DOMContentLoaded", () => {
   slider.addEventListener("input", update);
 
   /* =========================
+     Animation loop
+     ========================= */
+  function animate() {
+    if (isRunning) {
+      let idx = +slider.value + playSpeed;
+
+      if (idx >= data.t.length) {
+        idx = 0; // ループ再生
+      }
+
+      slider.value = idx;
+      update();
+    }
+    requestAnimationFrame(animate);
+  }
+  animate();
+
+  /* =========================
      Gain sliders
      ========================= */
 
@@ -82,6 +114,9 @@ window.addEventListener("DOMContentLoaded", () => {
 
       // 物理モデルは常に再計算
       data = simulate();
+
+      // スライダー範囲再同期（安全）
+      slider.max = data.t.length - 1;
 
       update();
     });
