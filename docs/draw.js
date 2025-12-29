@@ -1,3 +1,10 @@
+// draw.js
+let fixedRanges = null;
+
+export function resetRanges() {
+  fixedRanges = null;
+}
+
 export function draw(ctx, data, idx) {
   const { V, I, x, P, Q } = data;
   const W = ctx.canvas.width;
@@ -18,31 +25,29 @@ export function draw(ctx, data, idx) {
   const Y_MARGIN = 0.15;
   const AMP_RATIO = 0.5;
 
-  /* =========================
-     Draw each waveform
-     ========================= */
-  rows.forEach((row, r) => {
-    const y0 = r * rowH + rowH / 2;
+  // ===== 初回だけレンジを決めて固定（重要） =====
+  if (!fixedRanges) {
+    fixedRanges = rows.map((row, r) => {
+      // V(t) は絶対レンジ（ここはお好みで）
+      if (r === 0) return { vMin: -2.0, vMax: 2.0 };
 
-    let vMin, vMax;
-
-    if (r === 0) {
-      /* ===== V(t)：絶対スケール ===== */
-      vMin = -2.0;  // [V] 表示下限
-      vMax =  2.0;  // [V] 表示上限
-    } else {
-      /* ===== Others：自動スケール ===== */
       const vMinRaw = Math.min(...row);
       const vMaxRaw = Math.max(...row);
       const span = vMaxRaw - vMinRaw || 1;
+      return {
+        vMin: vMinRaw - span * Y_MARGIN,
+        vMax: vMaxRaw + span * Y_MARGIN
+      };
+    });
+  }
 
-      vMin = vMinRaw - span * Y_MARGIN;
-      vMax = vMaxRaw + span * Y_MARGIN;
-    }
+  rows.forEach((row, r) => {
+    const y0 = r * rowH + rowH / 2;
 
+    const { vMin, vMax } = fixedRanges[r];
     const scale = (rowH * AMP_RATIO) / (vMax - vMin);
 
-    /* ----- baseline ----- */
+    // 基準線
     ctx.strokeStyle = "#222";
     ctx.lineWidth = 1;
     ctx.beginPath();
@@ -50,40 +55,34 @@ export function draw(ctx, data, idx) {
     ctx.lineTo(W, y0);
     ctx.stroke();
 
-    /* ----- waveform ----- */
+    // 波形
     ctx.strokeStyle = colors[r];
     ctx.lineWidth = 2;
     ctx.beginPath();
-
     row.forEach((v, i) => {
       const xPos = (i / (row.length - 1)) * W;
       const yPos = y0 - (v - (vMin + vMax) / 2) * scale;
       i === 0 ? ctx.moveTo(xPos, yPos) : ctx.lineTo(xPos, yPos);
     });
-
     ctx.stroke();
 
-    /* ----- label ----- */
+    // ラベル
     ctx.lineWidth = 3;
     ctx.strokeStyle = "#000";
     ctx.strokeText(labels[r], 10, y0 - rowH * 0.35);
-
     ctx.fillStyle = colors[r];
     ctx.fillText(labels[r], 10, y0 - rowH * 0.35);
 
-    /* ----- cursor marker ----- */
+    // カーソル交点
     const v = row[idx];
     const cy = y0 - (v - (vMin + vMax) / 2) * scale;
-
     ctx.fillStyle = colors[r];
     ctx.beginPath();
     ctx.arc(cx, cy, 4, 0, Math.PI * 2);
     ctx.fill();
   });
 
-  /* =========================
-     Time cursor
-     ========================= */
+  // 時間カーソル
   ctx.strokeStyle = "#ffffff";
   ctx.lineWidth = 2;
   ctx.beginPath();
