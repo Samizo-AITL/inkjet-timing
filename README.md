@@ -6,6 +6,8 @@ This repository provides a **stacked, time-aligned visualization**
 showing how electrical, mechanical, and fluidic domains are causally
 connected during inkjet droplet ejection.
 
+[![Back to Portal (EN)](https://img.shields.io/badge/Back%20to%20Portal-0B5FFF?style=for-the-badge&logo=homeassistant&logoColor=white)](https://samizo-aitl.github.io/portal/en/)
+
 ---
 
 ## What this shows
